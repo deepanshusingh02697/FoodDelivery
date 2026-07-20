@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  OWNER
+  ADMIN
+  DELIVERY_PARTNER
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  firstname     String
+  lastname      String
+  email         String   @unique
+  phone         String?
+  password      String
+  phoneVerified Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  role Role @default(CUSTOMER)
+
+  restaurant Restaurant[] @relation("OwnedRestaurants") // owned by user
+  approved   Restaurant[] @relation("ApprovedRestaurants") // approved by admin
+  carts      Cart[]
+  orders     Order[]
+  deliveries Order[]      @relation("DeliveryOrders")
+}
+
+enum RestaurantStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Restaurant {
+  id             Int              @id @default(autoincrement())
+  restaurantName String
+  cuisine        String
+  address        String
+  fssaiNumber    String?
+  gstNumber      String?
+  phone          String
+  status         RestaurantStatus @default(PENDING)
+
+  ownerId Int
+  owner   User @relation("OwnedRestaurants", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  approvedBy Int?
+  approvedAt DateTime?
+
+  admin     User?   @relation("ApprovedRestaurants", fields: [approvedBy], references: [id])
+  adminNote String?
+
+  menus MenuItem[]
+  carts Cart[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model MenuItem {
+  id Int @id @default(autoincrement())
+
+  name        String
+  description String?
+  price       Float
+  category    String
+  isVeg       Boolean
+  imageUrl    String?
+  isAvailable Boolean @default(true)
+
+  trackStock    Boolean @default(false)
+  stockQuantity Int?
+
+  createdAt DateTime @default(now())
+
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+}
+
+model Cart {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  items CartItem[]
+
+  @@unique([userId, restaurantId])
+}
+
+model CartItem {
+  id Int @id @default(autoincrement())
+
+  quantity   Int
+  priceAtAdd Float
+
+  cartId Int
+  cart   Cart @relation(fields: [cartId], references: [id])
+
+  menuItemId Int
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+enum OrderStatus {
+  PLACED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELED
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  deliveryPartnerId Int?
+  deliveryPartner   User? @relation("DeliveryOrders", fields: [deliveryPartnerId], references: [id])
+
+  status      OrderStatus @default(PLACED)
+  subtotal    Float
+  deliveryFee Float
+  totalAmount Float
+
+  placedAt    DateTime  @default(now())
+  deliveredAt DateTime?
+
+  items            OrderItem[]
+  deliveryTracking DeliveryTracking?
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  menuItemId Int?
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id])
+
+  nameSnapshot  String
+  priceSnapshot Float
+  quantity      Int
+}
+
+model DeliveryTracking {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  lat       Float
+  lng       Float
+  updatedAt DateTime @updatedAt
+}
