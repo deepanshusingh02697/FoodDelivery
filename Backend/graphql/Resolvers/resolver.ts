@@ -1,7 +1,17 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { accessCookieOptions, setToken } from "../../lib/jwtCookie";
-import { Context, isAdmin, isAuth, isOwner } from "../context";
+import {
+  checkemail,
+  checkPassword,
+  checkPhone,
+  Context,
+  isAdmin,
+  isAuth,
+  isOwner,
+} from "../context";
+import { razorpay } from "../../Razorpay/Razorpay";
+import crypto from "crypto";
 
 export const resolvers = {
   Query: {
@@ -10,7 +20,6 @@ export const resolvers = {
       const user = await prisma.user.findUnique({ where: { id: ctx.userId! } });
       return user;
     },
-
     //admin
     GetPendingRestaurants: async (
       _parent: unknown,
@@ -26,7 +35,46 @@ export const resolvers = {
         },
       });
     },
+    GetAdminDahsboard: async (
+      _parent: unknown,
+      _args: unknown,
+      ctx: Context,
+    ) => {
+      isAdmin(ctx);
+      const [
+        revenueAgg,
+        totalOrders,
+        totalRestaurants,
+        totalCustomers,
+        pendingRestaurants,
+        statusGroups,
+      ] = await Promise.all([
+        prisma.order.aggregate({
+          where: { status: { not: "CANCELED" } },
+          _sum: { totalAmount: true },
+        }),
+        prisma.order.count(),
+        prisma.restaurant.count({ where: { status: "APPROVED" } }),
+        prisma.user.count({ where: { role: "CUSTOMER" } }),
+        prisma.restaurant.count({ where: { status: "PENDING" } }),
+        prisma.order.groupBy({
+          by: ["status"],
+          _count: { status: true },
+        }),
+      ]);
 
+      return {
+        totalRevenue: revenueAgg._sum.totalAmount ?? 0,
+        totalOrders,
+        totalRestaurants,
+        totalCustomers,
+        pendingRestaurants,
+        ordersByStatus: statusGroups.map((g) => ({
+          status: g.status,
+          count: g._count.status,
+        })),
+      };
+    },
     //owner
     MyRestaurantMenu: async (
       _parent: unknown,
@@ -76,9 +124,7 @@ export const resolvers = {
         },
         include: {
           menus: true,
-        },
-        orderBy: {
-          restaurantName: "asc",
+          reviews: true,
         },
       });
     },
@@ -88,10 +134,25 @@ export const resolvers = {
         search?: string;
         cuisine?: string;
         vegOnly?: boolean;
+        rating?: number;
       },
       ctx: Context,
     ) => {
       isAuth(ctx);
+
+      let matchingRestaurantIds: number[] | undefined;
+
+      if (args.rating !== undefined) {
+        const avgByRestaurant = await prisma.review.groupBy({
+          by: ["restaurantId"],
+          _avg: { rating: true },
+        });
+
+        matchingRestaurantIds = avgByRestaurant
+          .filter((g) => (g._avg.rating ?? 0) >= args.rating!)
+          .map((g) => g.restaurantId);
+      }
+
       const filterrestaurant = await prisma.restaurant.findMany({
         where: {
           status: "APPROVED",
@@ -109,6 +170,7 @@ export const resolvers = {
               mode: "insensitive",
             },
           }),
+
           ...(args.vegOnly && {
             menus: {
               some: {
@@ -117,15 +179,101 @@ export const resolvers = {
               },
             },
           }),
+
+          ...(matchingRestaurantIds && {
+            id: { in: matchingRestaurantIds },
+          }),
         },
         include: {
           menus: true,
+          reviews: true,
         },
       });
 
       return filterrestaurant;
     },
+    GetMenuItems: async (
+      _parent: unknown,
+      args: { restaurantID: number },
+      ctx: Context,
+    ) => {
+      console.log(args.restaurantID);
+
+      isAuth(ctx);
+      return await prisma.menuItem.findMany({
+        where: {
+          restaurantId: args.restaurantID,
+        },
+      });
+    },
+    GetCart: async (
+      _parent: unknown,
+      args: { restaurantId: number },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const cart = await prisma.cart.findUnique({
+        where: {
+          userId_restaurantId: {
+            userId: ctx.userId!,
+            restaurantId: Number(args.restaurantId),
+          },
+        },
+        include: {
+          items: {
+            include: { menuItem: true },
+            restaurant: { select: { restaurantName: true } },
+          },
+        },
+      });
+
+      return cart;
+    },
+    AvailableDeliveryPartners: async (
+      _parent: unknown,
+      _args: unknown,
+      ctx: Context,
+    ) => {
+      isOwner(ctx);
+      return await prisma.user.findMany({
+        where: { role: "DELIVERY_PARTNER" },
+      });
+    },
+
+    MyAddresses: async (_parent: unknown, _args: unknown, ctx: Context) => {
+      isAuth(ctx);
+      return await prisma.address.findMany({
+        where: { userId: ctx.userId! },
+        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+      });
+    },
+    GetRestaurantReviews: async (
+      _parent: unknown,
+      args: { restaurantId: number },
+      ctx: Context,
+    ) => {
+      return await prisma.review.findMany({
+        where: { restaurantId: Number(args.restaurantId) },
+        include: { user: true },
+        orderBy: { createdAt: "desc" },
+      });
+    },
+    GetReaturantDetail: async (
+      _parent: unknown,
+      args: { restaurantId: number },
+      ctx: Context,
+    ) => {
+      console.log(ctx.role, ctx.userId);
+
+      isAuth(ctx);
+      return prisma.restaurant.findFirst({
+        where: { id: args.restaurantId },
+        include: { reviews: true },
+      });
+    },
   },
+
   Mutation: {
     SignUp: async (
       _parent: unknown,
@@ -138,13 +286,26 @@ export const resolvers = {
       },
       _ctx: unknown,
     ) => {
-      console.log(args.firstname,args.lastname,args.email,args.password)
+      const { firstname, lastname, email, password } = args;
+      if (
+        !firstname.trim() ||
+        !lastname.trim() ||
+        !email.trim() ||
+        !password.trim()
+      ) {
+        throw new Error("All fields are required");
+      }
       const existUser = await prisma.user.findUnique({
         where: { email: args.email },
       });
+
       if (existUser) throw new Error("Email already exist");
 
       const hashPassword = await bcrypt.hash(args.password.trim(), 10);
+
+      checkemail(args.email);
+
+      checkPassword(args.password);
 
       const user = await prisma.user.create({
         data: {
@@ -326,6 +487,38 @@ export const resolvers = {
       },
       _ctx: unknown,
     ) => {
+      if (args.firstname.trim().length < 2 || args.lastname.trim().length < 2) {
+        throw new Error("Firstname and lastname required");
+      }
+      checkemail(args.email);
+      checkPassword(args.password);
+      checkPhone(args.phone);
+
+      if (args.restaurantName.trim().length < 3) {
+        throw new Error("Restaurant name must be at least 3 of characters");
+      }
+      if (!args.cuisine?.trim()) {
+        throw new Error("Cuisine is required");
+      }
+      if (!args.address?.trim()) {
+        throw new Error("Address is required");
+      }
+      if (args.fssaiNumber) {
+        const fssaiRegex = /^\d{14}$/;
+
+        if (!fssaiRegex.test(args.fssaiNumber.trim())) {
+          throw new Error("FSSAI number must be exactly 14 digits");
+        }
+      }
+      if (args.gstNumber) {
+        const gstRegex =
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+        if (!gstRegex.test(args.gstNumber.trim().toUpperCase())) {
+          throw new Error("Invalid GST number format");
+        }
+      }
+
       const existUser = await prisma.user.findUnique({
         where: { email: args.email },
       });
@@ -336,13 +529,16 @@ export const resolvers = {
       const existingRestaurant = await prisma.restaurant.findFirst({
         where: {
           OR: [
-            { fssaiNumber: args.fssaiNumber },
-            { gstNumber: args.gstNumber },
+            { fssaiNumber: args.fssaiNumber?.trim() },
+            { gstNumber: args.gstNumber?.trim() },
           ],
         },
       });
 
-      if (existingRestaurant) {
+      if (
+        existingRestaurant &&
+        (args.fssaiNumber?.trim() || args.gstNumber?.trim())
+      ) {
         switch (existingRestaurant.status) {
           case "PENDING":
             throw new Error(
@@ -413,6 +609,8 @@ export const resolvers = {
       const restaurant = await prisma.restaurant.findFirst({
         where: { ownerId: ctx.userId!, status: "APPROVED" },
       });
+      console.log(restaurant);
+
       if (!restaurant)
         throw new Error("No approved restaurant found for this owner");
 
@@ -555,20 +753,20 @@ export const resolvers = {
 
       return { success: true, msg: "Menu item deleted", menuItem: null };
     },
-    UpdateOrderStatus: async (
+
+    /*     UpdateOrderStatus: async (
       _parent: unknown,
       args: { orderId: number; status: "PREPARING" | "CANCELED" },
       ctx: Context,
     ) => {
       isOwner(ctx);
-
       const order = await prisma.order.findUnique({
         where: { id: Number(args.orderId) },
         include: { restaurant: true },
       });
       if (!order) throw new Error("NOT_FOUND");
       if (order.restaurant.ownerId !== ctx.userId) {
-        throw new Error("This isn't your restaurant's order");
+        throw new Error("Not your restaurant's order");
       }
       if (order.status !== "PLACED" && order.status !== "PREPARING") {
         throw new Error(`Cannot update status once order is ${order.status}`);
@@ -581,7 +779,134 @@ export const resolvers = {
 
       return { success: true, msg: "Order status updated", order: updated };
     },
+    handleUpateOrderStatus: async (
+      _parent: unknown,
+      args: { orderId: number; status: "CANCELED" },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+      const order = await prisma.order.findUnique({
+        where: { id: Number(args.orderId) },
+        include: { restaurant: true },
+      });
+      if (!order) throw new Error("Not_Found");
+      if (order.status !== "PLACED") {
+        throw new Error(`Cannot update status once order is ${order.status}`);
+      }
+      const updated = await prisma.order.update({
+        where: { id: order.id },
+        data: { status: args.status },
+      });
+      return {
+        success: true,
+        msg: "Order Cancelled successfully",
+        order: updated,
+      };
+    },
+        UpdateDeliveryOrderStatus: async (
+      _parent: unknown,
+      args: { orderId: number; status: "DELIVERED" },
+      ctx: Context,
+    ) => {
+      if (ctx.role !== "DELIVERY_PARTNER") {
+        throw new Error("You can't update this");
+      }
 
+      const order = await prisma.order.findUnique({
+        where: { id: Number(args.orderId), deliveryPartnerId: ctx.userId },
+        include: { restaurant: true },
+      });
+      console.log(order);
+
+      if (!order) throw new Error("Not Found");
+
+      if (
+        order.status !== "PLACED" &&
+        order.status !== "PREPARING" &&
+        order.status !== "OUT_FOR_DELIVERY"
+      ) {
+        throw new Error(`Cannot update status before assign the delivery`);
+      }
+
+      const updated = await prisma.order.update({
+        where: { id: order.id },
+        data: { status: args.status },
+      });
+
+      return {
+        success: true,
+        msg:"Order status updated",
+        order: updated,
+      };
+    }, */
+
+    UpdateOrderStatus: async (
+      _parent: unknown,
+      args: {
+        orderId: number;
+        status: "PREPARING" | "CANCELED" | "OUT_FOR_DELIVERY" | "DELIVERED";
+      },
+      ctx: Context,
+    ) => {
+      const order = await prisma.order.findUnique({
+        where: { id: Number(args.orderId) },
+        include: { restaurant: true },
+      });
+
+      if (!order) throw new Error("Order not found");
+
+      switch (ctx.role) {
+        case "OWNER":
+          if (order.restaurant.ownerId !== ctx.userId) {
+            throw new Error("Not your restaurant's order");
+          }
+
+          if (
+            !["PLACED", "PREPARING"].includes(order.status) ||
+            !["PREPARING", "CANCELED"].includes(args.status)
+          ) {
+            throw new Error("Invalid status update");
+          }
+          break;
+
+        case "CUSTOMER":
+          if (order.userId !== ctx.userId) {
+            throw new Error("Not your order");
+          }
+
+          if (order.status !== "PLACED" || args.status !== "CANCELED") {
+            throw new Error("You can only cancel a placed order");
+          }
+          break;
+
+        case "DELIVERY_PARTNER":
+          if (order.deliveryPartnerId !== ctx.userId) {
+            throw new Error("Not assigned to you");
+          }
+
+          if (
+            !["PREPARING", "OUT_FOR_DELIVERY"].includes(order.status) ||
+            args.status !== "DELIVERED"
+          ) {
+            throw new Error("Invalid delivery status update");
+          }
+          break;
+
+        default:
+          throw new Error("Unauthorized");
+      }
+
+      const updated = await prisma.order.update({
+        where: { id: order.id },
+        data: { status: args.status },
+      });
+
+      return {
+        success: true,
+        msg: "Order status updated",
+        order: updated,
+      };
+    },
     AssignDeliveryPartner: async (
       _parent: unknown,
       args: { orderId: number; deliveryPartnerId: number },
@@ -594,7 +919,7 @@ export const resolvers = {
       });
       if (!order) throw new Error("NOT_FOUND");
       if (order.restaurant.ownerId !== ctx.userId)
-        throw new Error("This isn't your restaurant's order");
+        throw new Error("Not your restaurant's order");
       if (order.status !== "PREPARING") {
         throw new Error(
           "Order must be PREPARING before assigning a delivery partner",
@@ -662,7 +987,6 @@ export const resolvers = {
       });
       let cartItem;
       if (existingItem) {
-        //if exist update it
         const newQuantity = existingItem.quantity + args.quantity;
         if (
           menuItem.trackStock &&
@@ -675,7 +999,6 @@ export const resolvers = {
           data: { quantity: newQuantity },
         });
       } else {
-        //item not exist, update it
         cartItem = await prisma.cartItem.create({
           data: {
             cartId: cart.id,
@@ -692,6 +1015,38 @@ export const resolvers = {
       });
 
       return { success: true, msg: "Added to cart", cart: fullCart };
+    },
+    DecreaseCartItem: async (
+      _parent: unknown,
+      args: { cartItemId: number },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const cartItem = await prisma.cartItem.findUnique({
+        where: { id: Number(args.cartItemId) },
+        include: { cart: true },
+      });
+      if (!cartItem) throw new Error("NOT_FOUND");
+      if (cartItem.cart.userId !== ctx.userId) {
+        throw new Error("Not your cart item");
+      }
+
+      if (cartItem.quantity <= 1) {
+        await prisma.cartItem.delete({ where: { id: cartItem.id } });
+      } else {
+        await prisma.cartItem.update({
+          where: { id: cartItem.id },
+          data: { quantity: cartItem.quantity - 1 },
+        });
+      }
+
+      const fullCart = await prisma.cart.findUnique({
+        where: { id: cartItem.cartId },
+        include: { items: { include: { menuItem: true } } },
+      });
+
+      return { success: true, msg: "Quantity updated", cart: fullCart };
     },
     RemoveFromCart: async (
       _parent: unknown,
@@ -724,7 +1079,7 @@ export const resolvers = {
         where: { id: Number(args.cartId) },
       });
       if (!cart) throw new Error("Cart not found");
-      if (cart.userId !== ctx.userId) throw new Error("This isn't your cart"); // ← add this
+      if (cart.userId !== ctx.userId) throw new Error("this isn't your cart"); 
 
       await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 
@@ -734,9 +1089,102 @@ export const resolvers = {
         cart: { ...cart, items: [] },
       };
     },
+
+    AddAddress: async (
+      _parent: unknown,
+      args: {
+        addressLine1: string;
+        city: string;
+        state: string;
+        pincode: string;
+        country?: string;
+        lat?: number;
+        lng?: number;
+        isDefault?: boolean;
+      },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const address = await prisma.address.create({
+        data: {
+          userId: ctx.userId!,
+          addressLine1: args.addressLine1,
+          city: args.city,
+          state: args.state,
+          pincode: args.pincode,
+          country: args.country ?? "India",
+          lat: args.lat,
+          lng: args.lng,
+        },
+      });
+
+      return { success: true, msg: "Address added", address };
+    },
+
+    UpdateAddress: async (
+      _parent: unknown,
+      args: {
+        addressId: number;
+        addressLine1?: string;
+        city?: string;
+        state?: string;
+        pincode?: string;
+        lat?: number;
+        lng?: number;
+      },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const existing = await prisma.address.findUnique({
+        where: { id: Number(args.addressId) },
+      });
+      if (!existing) throw new Error("NOT_FOUND");
+      if (existing.userId !== ctx.userId) throw new Error("Not your address");
+
+      const updated = await prisma.address.update({
+        where: { id: existing.id },
+        data: {
+          addressLine1: args.addressLine1,
+          city: args.city,
+          state: args.state,
+          pincode: args.pincode,
+          lat: args.lat,
+          lng: args.lng,
+        },
+      });
+
+      return { success: true, msg: "Address updated", address: updated };
+    },
+
+    DeleteAddress: async (
+      _parent: unknown,
+      args: { addressId: number },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const existing = await prisma.address.findUnique({
+        where: { id: Number(args.addressId) },
+      });
+      if (!existing) throw new Error("NOT_FOUND");
+      if (existing.userId !== ctx.userId) throw new Error("Not your address");
+
+      try {
+        await prisma.address.delete({ where: { id: existing.id } });
+      } catch (err) {
+        throw new Error(
+          "can't delete this address because it linked with order",
+        );
+      }
+
+      return { success: true, msg: "Address deleted", address: null };
+    },
+
     PlaceOrder: async (
       _parent: unknown,
-      args: { cartId: number },
+      args: { cartId: number; addressId: number },
       ctx: Context,
     ) => {
       isAuth(ctx);
@@ -746,10 +1194,24 @@ export const resolvers = {
         include: { items: { include: { menuItem: true } } },
       });
       if (!cart) throw new Error("NOT_FOUND");
-      if (cart.userId !== ctx.userId) throw new Error("This isn't your cart");
-      if (cart.items.length === 0) throw new Error("Cart is empty");
+      if (cart.userId !== ctx.userId) throw new Error("not your cart");
+      if (cart.items.length === 0) throw new Error("cart is empty");
 
-      console.log("cart is : ", cart);
+      const address = await prisma.address.findUnique({
+        where: { id: Number(args.addressId) },
+      });
+      if (!address) throw new Error("Address not found");
+      if (address.userId !== ctx.userId) throw new Error("Not your address");
+
+      const addressSnapshot = [
+        address.addressLine1,
+        address.city,
+        address.state,
+        address.pincode,
+        address.country,
+      ]
+        .filter(Boolean)
+        .join(", ");
 
       const order = await prisma.$transaction(async (tx) => {
         for (const item of cart.items) {
@@ -768,7 +1230,6 @@ export const resolvers = {
             }
           }
         }
-
         const subtotal = cart.items.reduce(
           (sum, i) => sum + i.priceAtAdd * i.quantity,
           0,
@@ -776,10 +1237,12 @@ export const resolvers = {
         const deliveryFee = 49;
         const totalAmount = subtotal + deliveryFee;
 
-        const newOrder = await tx.order.create({
+        return tx.order.create({
           data: {
             userId: ctx.userId!,
             restaurantId: cart.restaurantId,
+            deliveryAddressId: address.id,
+            addressSnapshot,
             subtotal,
             deliveryFee,
             totalAmount,
@@ -794,16 +1257,180 @@ export const resolvers = {
           },
           include: { items: true },
         });
-
-        await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-
-        return newOrder;
       });
 
       return { success: true, msg: "Order placed", order };
     },
 
-    //admin approve/reject restaurant
+    PayOrder: async (
+      _parent: unknown,
+      args: { orderId: number },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const order = await prisma.order.findUnique({
+        where: { id: Number(args.orderId) },
+      });
+      if (!order) throw new Error("NOT_FOUND");
+      if (order.userId !== ctx.userId) {
+        throw new Error("not your order");
+      }
+
+      try {
+        const razorpayOrder = await razorpay.orders.create({
+          amount: Math.round(order.totalAmount * 100),
+          currency: "INR",
+          receipt: `order_${order.id}`,
+        });
+
+        return {
+          success: true,
+          msg: "Razorpay order created",
+          razorpayOrder,
+        };
+      } catch (error) {
+        console.error(error);
+        throw new Error("Error in razorpay services");
+      }
+    },
+    VerifyPayment: async (
+      _parent: unknown,
+      args: {
+        orderId: number;
+        razorpayOrderId: string;
+        razorpayPaymentId: string;
+        razorpaySignature: string;
+      },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const body = `${args.razorpayOrderId}|${args.razorpayPaymentId}`;
+      const expectedSignature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+        .update(body)
+        .digest("hex");
+
+      if (expectedSignature !== args.razorpaySignature) {
+        throw new Error("Payment verification failed");
+      }
+
+      const order = await prisma.order.findUnique({
+        where: { id: Number(args.orderId) },
+      });
+      if (!order) throw new Error("NOT_FOUND");
+      if (order.userId !== ctx.userId) throw new Error("This isn't your order");
+
+      const updated = await prisma.order.update({
+        where: { id: order.id },
+        data: { status: "PREPARING" },
+      });
+      const cart = await prisma.cart.findFirst({
+        where: {
+          userId: ctx.userId,
+        },
+      });
+
+      if (cart) {
+        await prisma.cartItem.deleteMany({
+          where: {
+            cartId: cart.id,
+          },
+        });
+      }
+
+      return { success: true, msg: "Payment verified", order: updated };
+    },
+
+    //review
+    SubmitReview: async (
+      _parent: unknown,
+      args: { restaurantId: number; rating: number; comment?: string },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      if (args.rating < 1 || args.rating > 5) {
+        throw new Error("Rating must be between 1 and 5");
+      }
+
+      const restaurant = await prisma.restaurant.findUnique({
+        where: { id: Number(args.restaurantId) },
+      });
+      if (!restaurant) throw new Error("NOT_FOUND");
+
+      const existing = await prisma.review.findUnique({
+        where: {
+          userId_restaurantId: {
+            userId: ctx.userId!,
+            restaurantId: restaurant.id,
+          },
+        },
+      });
+      if (existing) throw new Error("You've already reviewed this restaurant");
+
+      const review = await prisma.review.create({
+        data: {
+          rating: args.rating,
+          comment: args.comment,
+          userId: ctx.userId!,
+          restaurantId: restaurant.id,
+        },
+        include: { user: true },
+      });
+
+      return { success: true, msg: "Review submitted", review };
+    },
+
+    UpdateReview: async (
+      _parent: unknown,
+      args: { reviewId: number; rating?: number; comment?: string },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const existing = await prisma.review.findUnique({
+        where: { id: Number(args.reviewId) },
+      });
+      if (!existing) throw new Error("NOT_FOUND");
+      if (existing.userId !== ctx.userId) throw new Error("Not your review");
+
+      if (args.rating !== undefined && (args.rating < 1 || args.rating > 5)) {
+        throw new Error("Rating must be between 1 and 5");
+      }
+
+      const updated = await prisma.review.update({
+        where: { id: existing.id },
+        data: {
+          rating: args.rating ?? existing.rating,
+          comment: args.comment ?? existing.comment,
+        },
+        include: { user: true },
+      });
+
+      return { success: true, msg: "Review updated", review: updated };
+    },
+
+    DeleteReview: async (
+      _parent: unknown,
+      args: { reviewId: number },
+      ctx: Context,
+    ) => {
+      isAuth(ctx);
+
+      const existing = await prisma.review.findUnique({
+        where: { id: Number(args.reviewId) },
+      });
+      if (!existing) throw new Error("NOT_FOUND");
+      if (existing.userId !== ctx.userId) throw new Error("Not your review");
+
+      await prisma.review.delete({ where: { id: existing.id } });
+
+      return { success: true, msg: "Review deleted", review: null };
+    },
+
+    //admin
     ApproveRestaurant: async (
       _parent: unknown,
       args: { restaurantId: number },
@@ -827,7 +1454,6 @@ export const resolvers = {
         },
       });
 
-      // promote the applicant to OWNER — this is the whole "become an owner" moment
       await prisma.user.update({
         where: { id: restaurant.ownerId },
         data: { role: "OWNER" },
@@ -856,7 +1482,7 @@ export const resolvers = {
         where: { id: restaurant.id },
         data: {
           status: "REJECTED",
-          approvedBy: ctx.userId!, // admin who reviewed it, even though they rejected
+          approvedBy: ctx.userId!,
           approvedAt: new Date(),
         },
       });
@@ -870,7 +1496,6 @@ export const resolvers = {
       args: { orderId: number; lat: number; lng: number },
       ctx: Context,
     ) => {
-      isAuth(ctx);
       if (ctx.role !== "DELIVERY_PARTNER")
         throw new Error("Only delivery partners can update location");
 
@@ -886,29 +1511,6 @@ export const resolvers = {
         update: { lat: args.lat, lng: args.lng },
         create: { orderId: order.id, lat: args.lat, lng: args.lng },
       });
-    },
-    MarkDelivered: async (
-      _parent: unknown,
-      args: { orderId: number },
-      ctx: Context,
-    ) => {
-      isAuth(ctx);
-      if (ctx.role !== "DELIVERY_PARTNER")
-        throw new Error("Only delivery partners can do this");
-
-      const order = await prisma.order.findUnique({
-        where: { id: Number(args.orderId) },
-      });
-      if (!order) throw new Error("NOT_FOUND");
-      if (order.deliveryPartnerId !== ctx.userId)
-        throw new Error("This order isn't assigned to you");
-
-      const updated = await prisma.order.update({
-        where: { id: order.id },
-        data: { status: "DELIVERED", deliveredAt: new Date() },
-      });
-
-      return { success: true, msg: "Marked as delivered", order: updated };
     },
   },
 };

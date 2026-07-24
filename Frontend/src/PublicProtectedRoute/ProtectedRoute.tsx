@@ -1,24 +1,25 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
+import { useAppSelector } from "../Redux/hooks";
 
 interface Props {
   children: React.ReactNode;
   allowedRole?: string;
 }
-export default function ProtectedRoute({ children, allowedRole }: Props) {
-  const { authUser, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
-  if (!authUser) {
+export default function ProtectedRoute({ children, allowedRole }: Props) {
+  const { user } = useAppSelector((state) => state.auth);
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
-  if (allowedRole && authUser.role !== allowedRole) {
+
+  if (allowedRole && user.role !== allowedRole) {
     return (
       <Navigate
         to={
-          authUser.role === "ADMIN"
+          user.role === "ADMIN"
             ? "/admin"
-            : authUser.role === "OWNER"
+            : user.role === "OWNER"
               ? "/owner"
               : "/"
         }
@@ -26,5 +27,6 @@ export default function ProtectedRoute({ children, allowedRole }: Props) {
       />
     );
   }
-  return <>{children}</>
+
+  return <>{children}</>;
 }

@@ -43,7 +43,6 @@ export const isAuth = (ctx: Context) => {
 };
 
 export const isOwner = (ctx: Context) => {
-  isAuth(ctx);
   if (ctx.role !== "OWNER") {
     throw new GraphQLError("You don't have access — owners only", {
       extensions: { code: "FORBIDDEN", http: { status: 403 } },
@@ -52,7 +51,6 @@ export const isOwner = (ctx: Context) => {
 };
 
 export const isAdmin = (ctx: Context) => {
-  isAuth(ctx);
   if (ctx.role !== "ADMIN") {
     throw new GraphQLError("You don't have access — admins only", {
       extensions: { code: "FORBIDDEN", http: { status: 403 } },
@@ -80,5 +78,14 @@ export const checkPassword = (password: string): string => {
     );
   }
 
-  return password;
+  return password.trim();
 };
+
+export const checkPhone=(phone: string): string=>{
+  const phoneRegex = /^[6-9]\d{9}$/;
+  if (!phoneRegex.test(phone)) {
+    throw new Error("Invalid phone number");
+  }
+  return phone
+}
+

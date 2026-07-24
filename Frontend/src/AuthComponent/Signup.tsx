@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FaEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
-import { FaUtensils } from "react-icons/fa6";
 import { FaUsers } from "react-icons/fa";
 import { FaStore } from "react-icons/fa6";
 import { toast } from "react-toastify";
@@ -14,7 +13,8 @@ import type {
   Post_RegisterRestaurant_Interface,
   Post_Signup_Interface,
 } from "../graphql/Client";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import LeftSection from "./LeftSection";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,6 +42,7 @@ export default function Signup() {
   const [RegisterResturant] = useMutation<Post_RegisterRestaurant_Interface>(
     RegisterRestaurant_Mutation,
   );
+  const navigate = useNavigate();
 
   const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -106,6 +107,7 @@ export default function Signup() {
           password: "",
           confirmpassword: "",
         });
+        navigate("/login")
         toast(response.data?.SignUp?.msg, {
           position: "top-right",
           type: "success",
@@ -171,7 +173,7 @@ export default function Signup() {
           type: "success",
           theme: "colored",
         });
-
+        navigate("/login");
         setRestaurantInput({
           firstname: "",
           lastname: "",
@@ -202,68 +204,8 @@ export default function Signup() {
 
   return (
     <div className="h-screen bg-[#0d0907] text-white grid lg:grid-cols-2 overflow-hidden">
-      {/* LEFT Section */}
-      <div className="hidden lg:flex h-screen relative overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
-          className="absolute inset-0 w-full h-full object-cover"
-          alt="food"
-        />
+      <LeftSection />
 
-        <div className="absolute inset-0 bg-black/60" />
-
-        <div className="relative z-10 flex flex-col justify-end p-12 pb-20">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="bg-red-500 p-3 rounded-xl">
-              <FaUtensils size={28} />
-            </div>
-
-            <h1 className="text-3xl font-bold">
-              Zomato<span className="text-red-500">.</span>
-            </h1>
-          </div>
-
-          <h2 className="text-6xl font-extrabold leading-tight">
-            Food that
-            <br />
-            <span className="text-orange-500">fuels</span> every
-            <br />
-            moment.
-          </h2>
-
-          <p className="mt-8 text-gray-300 text-lg max-w-md leading-relaxed">
-            2,400+ restaurants. Real-time tracking. Delivered in under 35
-            minutes.
-          </p>
-
-          <div className="flex items-center gap-5 mt-10">
-            <div className="flex -space-x-3">
-              <img
-                className="w-12 h-12 rounded-full border-2 border-black"
-                src="https://i.pravatar.cc/100?img=1"
-              />
-
-              <img
-                className="w-12 h-12 rounded-full border-2 border-black"
-                src="https://i.pravatar.cc/100?img=2"
-              />
-
-              <img
-                className="w-12 h-12 rounded-full border-2 border-black"
-                src="https://i.pravatar.cc/100?img=3"
-              />
-            </div>
-
-            <div>
-              <div className="text-yellow-400">★★★★★</div>
-
-              <p className="text-gray-300 text-sm">1.2M+ happy customers</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* RIGHT Section */}
       <div className="flex overflow-y-auto justify-center px-6 pt-12">
         <div className="w-full max-w-lg ">
           <div className="bg-[#18120f] rounded-xl p-1 flex gap-1">
@@ -302,17 +244,14 @@ export default function Signup() {
               : "Register your own restaurant"}
           </p>
 
-          {/* SELECT ROLE */}
           <div className="mt-10">
             <p className="uppercase text-xs tracking-widest text-gray-500 mb-5">
               Register As
             </p>
 
             <div className="grid grid-cols-2 gap-4">
-              {/* CUSTOMER */}
-
               <div
-                className={`border-2 ${isCustomer ? "border-red-500" : "border-zinc-700"}  bg-[#191412] rounded-xl p-4 text-center cursor-pointer`}
+                className={`border-2 ${isCustomer ? "border-red-500" : "border-[#2E2924]"}  bg-[#191412] rounded-xl p-4 text-center cursor-pointer`}
                 onClick={() => setIsCustomer(true)}
               >
                 <FaUsers
@@ -324,9 +263,8 @@ export default function Signup() {
                 <span className="text-xs text-gray-500">Order food</span>
               </div>
 
-              {/* OWNER */}
               <div
-                className={`border ${!isCustomer ? "border-red-500" : "border-zinc-700"} rounded-xl p-4 text-center cursor-pointer`}
+                className={`border ${!isCustomer ? "border-red-500" : "border-[#2E2924]"} rounded-xl p-4 text-center cursor-pointer`}
                 onClick={() => setIsCustomer(false)}
               >
                 <FaStore
@@ -340,7 +278,6 @@ export default function Signup() {
 
           {isCustomer ? (
             <>
-              {/* CUSTOMER FORM */}
               <form action="" onSubmit={handleCustomerSubmit}>
                 <div className="mt-8 space-y-5">
                   <div>
@@ -353,7 +290,7 @@ export default function Signup() {
                       w-full
                       bg-[#191412]
                       border
-                      border-zinc-700
+                      border-[#2E2924]
                       rounded-xl
                       px-5
                       py-4
@@ -369,13 +306,13 @@ export default function Signup() {
                     <label className="text-sm text-gray-400">Last Name</label>
 
                     <input
-                      placeholder="John Smith"
+                      placeholder="Smith"
                       className="
                       mt-2
                       w-full
                       bg-[#191412]
                       border
-                      border-zinc-700
+                      border-[#2E2924]
                       rounded-xl
                       px-5
                       py-4
@@ -399,7 +336,7 @@ export default function Signup() {
                 w-full
                 bg-[#191412]
                 border
-                border-zinc-700
+                border-[#2E2924]
                 rounded-xl
                 px-5
                 py-4
@@ -424,7 +361,7 @@ export default function Signup() {
                   w-full
                   bg-[#191412]
                   border
-                  border-zinc-700
+                  border-[#2E2924]
                   rounded-xl
                   px-5
                   py-4
@@ -463,7 +400,7 @@ export default function Signup() {
                       w-full
                       bg-[#191412]
                       border
-                      border-zinc-700
+                      border-[#2E2924]
                       rounded-xl
                       px-5
                       py-4
@@ -496,7 +433,6 @@ export default function Signup() {
             </>
           ) : (
             <>
-              {/* REGISTER RESTAURANT OWNER */}
               <form action="" onSubmit={handleRestaurantSubmit}>
                 <div className="mt-8 space-y-5">
                   <div>
@@ -507,7 +443,7 @@ export default function Signup() {
                       name="firstname"
                       value={restaurantInput.firstname}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -519,7 +455,7 @@ export default function Signup() {
                       name="lastname"
                       value={restaurantInput.lastname}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -534,7 +470,7 @@ export default function Signup() {
                       name="email"
                       value={restaurantInput.email}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -548,11 +484,9 @@ export default function Signup() {
                       name="phone"
                       value={restaurantInput.phone}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
-
-                  {/* PASSWORD */}
 
                   <div>
                     <label className="text-sm text-gray-400">Password</label>
@@ -564,7 +498,7 @@ export default function Signup() {
                         name="password"
                         value={restaurantInput.password}
                         onChange={handleRestaurantChange}
-                        className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                        className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                       />
 
                       <button
@@ -580,8 +514,6 @@ export default function Signup() {
                       </button>
                     </div>
                   </div>
-
-                  {/* RESTAURANT DETAILS */}
 
                   <div className="pt-4">
                     <h3 className="text-lg font-semibold">
@@ -599,7 +531,7 @@ export default function Signup() {
                       name="restaurantName"
                       value={restaurantInput.restaurantName}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -611,7 +543,7 @@ export default function Signup() {
                       name="cuisine"
                       value={restaurantInput.cuisine}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -623,7 +555,7 @@ export default function Signup() {
                       name="address"
                       value={restaurantInput.address}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -637,7 +569,7 @@ export default function Signup() {
                       name="fssaiNumber"
                       value={restaurantInput.fssaiNumber}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -649,14 +581,14 @@ export default function Signup() {
                       name="gstNumber"
                       value={restaurantInput.gstNumber}
                       onChange={handleRestaurantChange}
-                      className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="mt-8 w-full py-4 rounded-xl bg-linear-to-r from-red-500 to-orange-500 font-semibold text-lg"
+                  className="mt-8 w-full py-4 rounded-xl bg-gradient-to-r from-red-500 to-orange-600 font-semibold text-lg"
                 >
                   Register Restaurant →
                 </button>

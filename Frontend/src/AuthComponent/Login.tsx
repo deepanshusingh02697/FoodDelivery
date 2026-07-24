@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
-import { FaUtensils } from "react-icons/fa6";
 import { IoShieldCheckmark } from "react-icons/io5";
 import { FaUsers } from "react-icons/fa";
 import { FaStore } from "react-icons/fa6";
@@ -9,16 +8,21 @@ import { toast } from "react-toastify";
 import { useMutation } from "@apollo/client/react";
 import type {
   Post_AdminLogin_Interface,
+  Post_DeliveryLogin_Interface,
   Post_Login_Interface,
   Post_OwnerLogin_Interface,
 } from "../graphql/Client";
 import {
   adminLogIn_Mutation,
+  deliveryLogIn_Mutation,
   logInUser_Mutation,
   ownerLogIn_Mutation,
 } from "../graphql/Mutation";
+import { useAppDispatch } from "../Redux/hooks";
+import { loginSuccess } from "../Redux/Slices/authSlice";
+import LeftSection from "./LeftSection";
 
-type LoginRole = "CUSTOMER" | "OWNER" | "ADMIN";
+type LoginRole = "CUSTOMER" | "OWNER" | "ADMIN" | "DELIVERY_PARTNER";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -32,8 +36,12 @@ export default function Login() {
     useMutation<Post_OwnerLogin_Interface>(ownerLogIn_Mutation);
   const [AdminLogIn, { loading: adminLoading }] =
     useMutation<Post_AdminLogin_Interface>(adminLogIn_Mutation);
+  const [DeliveryLogIn, { loading: deliveryLoading }] =
+    useMutation<Post_DeliveryLogin_Interface>(deliveryLogIn_Mutation);
 
-  const loading = customerLoading || ownerLoading || adminLoading;
+  const dispatch = useAppDispatch();
+  const loading =
+    customerLoading || ownerLoading || adminLoading || deliveryLoading;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,7 +68,27 @@ export default function Login() {
       if (role === "CUSTOMER") {
         const response = await LogInUser({ variables });
         if (response.data?.LogIn?.success) {
+          const user = response.data?.LogIn?.user;
+          if (user) {
+            dispatch(loginSuccess(user));
+          }
           toast(response.data.LogIn.msg, {
+            position: "top-right",
+            type: "success",
+            theme: "colored",
+          });
+          navigate("/owner");
+        } else {
+          toast("Login failed", { position: "top-right", type: "warning" });
+        }
+      } else if (role === "OWNER") {
+        const response = await OwnerLogIn({ variables });
+        if (response.data?.OwnerLogIn?.success) {
+          const user = response.data.OwnerLogIn.user;
+          if (user) {
+            dispatch(loginSuccess(user));
+          }
+          toast(response.data.OwnerLogIn.msg, {
             position: "top-right",
             type: "success",
             theme: "colored",
@@ -69,27 +97,35 @@ export default function Login() {
         } else {
           toast("Login failed", { position: "top-right", type: "warning" });
         }
-      } else if (role === "OWNER") {
-        const response = await OwnerLogIn({ variables });
-        if (response.data?.OwnerLogIn?.success) {
-          toast(response.data.OwnerLogIn.msg, {
-            position: "top-right",
-            type: "success",
-            theme: "colored",
-          });
-          navigate("/owner/dashboard");
-        } else {
-          toast("Login failed", { position: "top-right", type: "warning" });
-        }
-      } else {
+      } else if (role === "ADMIN") {
         const response = await AdminLogIn({ variables });
         if (response.data?.AdminLogIn?.success) {
+          const user = response.data.AdminLogIn.user;
+          if (user) {
+            dispatch(loginSuccess(user));
+          }
           toast(response.data.AdminLogIn.msg, {
             position: "top-right",
             type: "success",
             theme: "colored",
           });
-          navigate("/admin/dashboard");
+          navigate("/admin");
+        } else {
+          toast("Login failed", { position: "top-right", type: "warning" });
+        }
+      } else {
+        const response = await DeliveryLogIn({ variables });
+        if (response?.data?.DeliveryPartnerLogIn?.success) {
+          const user = response.data?.DeliveryPartnerLogIn?.user;
+          if (user) {
+            dispatch(loginSuccess(user));
+          }
+          toast(response.data?.DeliveryPartnerLogIn?.msg, {
+            position: "top-right",
+            type: "success",
+            theme: "colored",
+          });
+          navigate("/delivery");
         } else {
           toast("Login failed", { position: "top-right", type: "warning" });
         }
@@ -102,58 +138,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#0d0907] text-white grid lg:grid-cols-2">
-      {/* LEFT SECTION — unchanged */}
-      <div className="hidden lg:flex relative overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
-          className="absolute inset-0 w-full h-full object-cover"
-          alt="food"
-        />
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="relative z-10 flex flex-col justify-end p-12 pb-20">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="bg-red-500 p-3 rounded-xl">
-              <FaUtensils size={28} />
-            </div>
-            <h1 className="text-3xl font-bold">
-              Zomato<span className="text-red-500">.</span>
-            </h1>
-          </div>
-          <h2 className="text-6xl font-extrabold leading-tight">
-            Food that
-            <br />
-            <span className="text-orange-500">fuels</span> every
-            <br />
-            moment.
-          </h2>
-          <p className="mt-8 text-gray-300 text-lg max-w-md leading-relaxed">
-            2,400+ restaurants. Real-time tracking. Delivered in under 35
-            minutes.
-          </p>
-          <div className="flex items-center gap-5 mt-10">
-            <div className="flex -space-x-3">
-              <img
-                className="w-12 h-12 rounded-full border-2 border-black"
-                src="https://i.pravatar.cc/100?img=1"
-              />
-              <img
-                className="w-12 h-12 rounded-full border-2 border-black"
-                src="https://i.pravatar.cc/100?img=2"
-              />
-              <img
-                className="w-12 h-12 rounded-full border-2 border-black"
-                src="https://i.pravatar.cc/100?img=3"
-              />
-            </div>
-            <div>
-              <div className="text-yellow-400">★★★★★</div>
-              <p className="text-gray-300 text-sm">1.2M+ happy customers</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <LeftSection />
 
-      {/* RIGHT SECTION */}
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg">
           <div className="bg-[#18120f] rounded-xl p-1 flex">
@@ -183,20 +169,15 @@ export default function Login() {
             </NavLink>
           </div>
 
-          <h1 className="text-3xl font-bold mt-12">Welcome back 👋</h1>
-          <p className="text-gray-400 mt-3">
-            Sign in to continue to your account
-          </p>
+          <h1 className="text-3xl font-bold mt-12">Welcome back </h1>
+          <p className="text-gray-400 mt-3">Sign in to continue your account</p>
 
-          {/* LOGIN ROLE — now actually wired to state */}
           <div className="mt-10">
-            <p className="uppercase text-xs tracking-widest text-gray-500 mb-5">
-              Login As
-            </p>
+            <p className="uppercase text-xs text-gray-500 mb-5">Login As</p>
             <div className="grid grid-cols-3 gap-4">
               <div
                 className={`border-2 ${
-                  role === "CUSTOMER" ? "border-red-500" : "border-zinc-700"
+                  role === "CUSTOMER" ? "border-red-500" : "border-[#2E2924]"
                 } bg-[#191412] rounded-xl p-4 text-center cursor-pointer`}
                 onClick={() => setRole("CUSTOMER")}
               >
@@ -208,8 +189,8 @@ export default function Login() {
               </div>
 
               <div
-                className={`border-2 ${
-                  role === "OWNER" ? "border-red-500" : "border-zinc-700"
+                className={`border-2 bg-[#191412] ${
+                  role === "OWNER" ? "border-red-500" : "border-[#2E2924]"
                 } rounded-xl p-4 text-center cursor-pointer`}
                 onClick={() => setRole("OWNER")}
               >
@@ -221,8 +202,8 @@ export default function Login() {
               </div>
 
               <div
-                className={`border-2 ${
-                  role === "ADMIN" ? "border-red-500" : "border-zinc-700"
+                className={`border-2 bg-[#191412] ${
+                  role === "ADMIN" ? "border-red-500" : "border-[#2E2924]"
                 } rounded-xl p-4 text-center cursor-pointer`}
                 onClick={() => setRole("ADMIN")}
               >
@@ -232,10 +213,17 @@ export default function Login() {
                 <p className="mt-3 font-semibold">Admin</p>
                 <span className="text-xs text-gray-500">Control</span>
               </div>
+              <div
+                className={`border-2 bg-[#191412] ${
+                  role === "DELIVERY_PARTNER" ? "border-red-500" : "border-[#2E2924]"
+                } rounded-xl p-4 text-center cursor-pointer`}
+                onClick={() => setRole("DELIVERY_PARTNER")}
+              >
+                Delivery login
+              </div>
             </div>
           </div>
 
-          {/* FORM — now a real <form>, wired to state and handleSubmit */}
           <form onSubmit={handleSubmit}>
             <div className="mt-10 space-y-5">
               <div>
@@ -243,10 +231,10 @@ export default function Login() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="you@example.com"
+                  placeholder="asd@example.com"
                   value={loginInput.email}
                   onChange={handleChange}
-                  className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                  className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                 />
               </div>
 
@@ -256,10 +244,10 @@ export default function Login() {
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="••••••••"
+                    placeholder="......."
                     value={loginInput.password}
                     onChange={handleChange}
-                    className="mt-2 w-full bg-[#191412] border border-zinc-700 rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                    className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                   />
                   <button
                     type="button"
@@ -276,18 +264,12 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="text-right mt-4">
-              <button type="button" className="text-red-500 hover:text-red-400">
-                Forgot password?
-              </button>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
-              className="mt-8 w-full py-4 rounded-xl bg-linear-to-r from-red-500 to-orange-500 font-semibold text-lg disabled:opacity-50"
+              className="mt-8 w-full py-4 rounded-xl bg-gradient-to-r from-red-500 to-orange-600 font-semibold text-lg disabled:opacity-50"
             >
-              {loading ? "Signing in..." : "Sign In →"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 

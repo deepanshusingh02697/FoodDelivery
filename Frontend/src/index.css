@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+/*
+  bg: "#080706",
+  s1: "#0F0D0B",
+  s2: "#161210",
+  card: "#1E1A16",
+  cardHi: "#252018",
+  border: "#2E2924",
+  bg:"#181412"
+  borderHi: "#3E3830",
+  red: "#E8374A",
+  redDim: "rgba(232,55,74,0.12)",
+  orange: "#FF6B35",
+  orangeDim: "rgba(255,107,53,0.1)",
+  gold: "#F5A623",
+  green: "#34D399",
+  greenDim: "rgba(52,211,153,0.1)",
+  blue: "#60A5FA",
+  blueDim: "rgba(96,165,250,0.1)",
+  purple: "#A78BFA",
+  text: "#F5EDE4",
+  textMid: "#BFB4A8",
+  textMuted: "#6B6259",
+  mono: "'DM Mono', monospace",
+  display: "'Outfit', sans-serif",
+  focus:border-red-500
+
+*/
