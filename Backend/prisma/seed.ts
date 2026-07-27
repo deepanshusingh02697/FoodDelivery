@@ -1,6 +1,10 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient,Role, RestaurantStatus } from "../generated/prisma/client";
+import {
+  PrismaClient,
+  Role,
+  RestaurantStatus,
+} from "../generated/prisma/client";
 import bcrypt from "bcryptjs";
 
 const adapter = new PrismaPg({
@@ -12,47 +16,52 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   const password = await bcrypt.hash("adm123@&", 10);
 
-
   // =====================
   // ADMIN
   // =====================
 
- const admin = await prisma.user.upsert({
-  where: {
-    email: "admin@foodapp.com",
-  },
-  update: {},
-  create: {
-    firstname: "Super",
-    lastname: "Admin",
-    email: "admin@foodapp.com",
-    phone: "9999999999",
-    password,
-    role: Role.ADMIN,
-    phoneVerified: true,
-  },
-});
-
+  const admin = await prisma.user.upsert({
+    where: {
+      email: "admin@foodapp.com",
+    },
+    update: {},
+    create: {
+      firstname: "Super",
+      lastname: "Admin",
+      email: "admin@foodapp.com",
+      phone: "9999999999",
+      password,
+      role: Role.ADMIN,
+      phoneVerified: true,
+    },
+  });
 
   // =====================
   // RESTAURANT OWNERS
   // =====================
 
-  const owner1 = await prisma.user.create({
-    data: {
+  const owner1 = await prisma.user.upsert({
+    where: {
+      email: "rahul@spicegarden.com",
+    },
+    update: {},
+    create: {
       firstname: "Rahul",
       lastname: "Sharma",
-      email: "rahul@gmail.com",
-      phone: "rah123@&",
+      email: "rahul@spicegarden.com",
+      phone: "8888888888",
       password,
       role: Role.OWNER,
       phoneVerified: true,
     },
   });
 
-
-  const owner2 = await prisma.user.create({
-    data: {
+  const owner2 = await prisma.user.upsert({
+    where: {
+      email: "amit@gmail.com",
+    },
+    update: {},
+    create: {
       firstname: "Amit",
       lastname: "Verma",
       email: "amit@gmail.com",
@@ -63,12 +72,9 @@ async function main() {
     },
   });
 
-
-
   // =====================
   // RESTAURANTS
   // =====================
-
 
   const spiceGarden = await prisma.restaurant.create({
     data: {
@@ -89,7 +95,6 @@ async function main() {
     },
   });
 
-
   const burgerHub = await prisma.restaurant.create({
     data: {
       restaurantName: "Burger Hub",
@@ -106,12 +111,9 @@ async function main() {
     },
   });
 
-
-
   // =====================
   // MENU ITEMS
   // =====================
-
 
   await prisma.menuItem.createMany({
     data: [
@@ -121,7 +123,8 @@ async function main() {
         price: 220,
         category: "Biryani",
         isVeg: false,
-        imageUrl: "https://res.cloudinary.com/delubzbh2/image/upload/v1784400937/FoodDelivery/jmgmhpz0e9vvobusyf6k.jpg",
+        imageUrl:
+          "https://res.cloudinary.com/delubzbh2/image/upload/v1784400937/FoodDelivery/jmgmhpz0e9vvobusyf6k.jpg",
         restaurantId: spiceGarden.id,
       },
 
@@ -131,7 +134,8 @@ async function main() {
         price: 180,
         category: "Main Course",
         isVeg: true,
-        imageUrl: "https://res.cloudinary.com/delubzbh2/image/upload/v1784400826/FoodDelivery/dwbm21mcxc7epr9fq7p5.jpg",
+        imageUrl:
+          "https://res.cloudinary.com/delubzbh2/image/upload/v1784400826/FoodDelivery/dwbm21mcxc7epr9fq7p5.jpg",
         restaurantId: spiceGarden.id,
       },
 
@@ -141,7 +145,8 @@ async function main() {
         price: 90,
         category: "South Indian",
         isVeg: true,
-        imageUrl: "https://res.cloudinary.com/delubzbh2/image/upload/v1785174361/FoodDelivery/cgjunwvwngqfzkxhmkhl.webp",
+        imageUrl:
+          "https://res.cloudinary.com/delubzbh2/image/upload/v1785174361/FoodDelivery/cgjunwvwngqfzkxhmkhl.webp",
 
         restaurantId: spiceGarden.id,
       },
@@ -152,7 +157,8 @@ async function main() {
         price: 150,
         category: "Burger",
         isVeg: true,
-        imageUrl: "https://res.cloudinary.com/delubzbh2/image/upload/v1785174417/FoodDelivery/vt6cb4cyadkat8tcjoi8.jpg",
+        imageUrl:
+          "https://res.cloudinary.com/delubzbh2/image/upload/v1785174417/FoodDelivery/vt6cb4cyadkat8tcjoi8.jpg",
 
         restaurantId: burgerHub.id,
       },
@@ -170,8 +176,6 @@ async function main() {
       },
     ],
   });
-
-
 
   console.log("Database seeded successfully");
 }
