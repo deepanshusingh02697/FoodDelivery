@@ -20,6 +20,7 @@ import DeliveryDashboard from "./Deliver/DeliveryDashboard";
 import { useAppDispatch } from "./Redux/hooks";
 import { useAuth } from "./Context/AuthContext";
 import { useEffect } from "react";
+import { Rings } from "react-loader-spinner";
 import { loginSuccess, logoutSuccess } from "./Redux/Slices/authSlice";
 import AdminCheckStatus from "./Admin/AdminCheckStatus";
 import AdminDashbord from "./Admin/AdminDashbord";
@@ -39,7 +40,16 @@ export default function App() {
     }
   }, [loading, authUser, error, dispatch]);
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="grid h-screen w-screen place-items-center">
+        <Rings
+  height={90}
+  width={90}
+  color="#ef4444"
+  visible
+/>
+      </div>
+    );
   }
 
   return (
@@ -79,7 +89,7 @@ export default function App() {
         }
       >
         <Route index element={<AdminDashbord />} />
-        <Route path="checkresto" element={<AdminCheckStatus/>}/>
+        <Route path="checkresto" element={<AdminCheckStatus />} />
       </Route>
 
       <Route

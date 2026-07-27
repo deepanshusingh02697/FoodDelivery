@@ -9,6 +9,7 @@ import type {
   FilterRestaurants_Vars,
 } from "../graphql/Client";
 import { FILTER_RESTAURANTS_Query } from "../graphql/Query";
+import CustomerHomeLoad from "../LoadSkeleton/CustomerHomeLoad";
 
 const quickFilters = ["All", "Pure Veg"];
 
@@ -50,10 +51,14 @@ export default function Home() {
     FILTER_RESTAURANTS_Query,
     { variables },
   );
-  console.log(data);
 
   const restaurants = data?.FilterRestaurants ?? [];
 
+  if(loading){
+    return(
+      <CustomerHomeLoad/>
+    )
+  }
   return (
     <div>
       <main className="px-4 py-5 md:px-8 md:py-10">
