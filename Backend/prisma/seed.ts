@@ -17,17 +17,21 @@ async function main() {
   // ADMIN
   // =====================
 
-  const admin = await prisma.user.create({
-    data: {
-      firstname: "Super",
-      lastname: "Admin",
-      email: "admin@gmail.com",
-      phone: "9999999999",
-      password,
-      role: Role.ADMIN,
-      phoneVerified: true,
-    },
-  });
+ const admin = await prisma.user.upsert({
+  where: {
+    email: "admin@foodapp.com",
+  },
+  update: {},
+  create: {
+    firstname: "Super",
+    lastname: "Admin",
+    email: "admin@foodapp.com",
+    phone: "9999999999",
+    password,
+    role: Role.ADMIN,
+    phoneVerified: true,
+  },
+});
 
 
   // =====================

@@ -19,6 +19,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "https://fooddelivery-backend-vkbb.onrender.com"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
