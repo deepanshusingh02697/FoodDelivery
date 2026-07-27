@@ -78,8 +78,7 @@ export default function Home() {
 
         <div className="mt-8 relative rounded-2xl overflow-hidden h-64">
           <img
-            src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4"
-            alt="Featured restaurant"
+            src="https://res.cloudinary.com/delubzbh2/image/upload/v1785168203/FoodDelivery/vvaqb96aqiexovnbkxyn.jpg"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="relative z-10 h-full flex flex-col justify-center p-10">
@@ -193,7 +192,7 @@ export default function Home() {
               >
                 <div className="relative h-40 bg-zinc-800">
                   <img
-                    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4"
+                    src="https://res.cloudinary.com/delubzbh2/image/upload/v1785167836/FoodDelivery/uyslwdxixq404wchibut.avif"
                     alt={restaurant.restaurantName}
                     className="w-full h-full object-cover"
                     onClick={() =>

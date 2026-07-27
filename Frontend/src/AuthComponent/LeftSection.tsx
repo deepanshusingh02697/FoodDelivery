@@ -4,7 +4,7 @@ export default function LeftSection() {
   return (
     <div className="hidden lg:flex relative overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+          src="https://res.cloudinary.com/delubzbh2/image/upload/v1785167622/FoodDelivery/k36anwftg4vt2zmzuwh4.avif"
           className="absolute w-full h-full object-cover"
           alt="food"
         />
