@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { FaEye } from "react-icons/fa";
 import { FaRegEyeSlash } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa";
@@ -15,18 +15,27 @@ import type {
 } from "../graphql/Client";
 import { NavLink, useNavigate } from "react-router-dom";
 import LeftSection from "./LeftSection";
+import { CombinedGraphQLErrors } from "@apollo/client";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [isCustomer, setIsCustomer] = useState(true);
-  const [customerInput, setCustomerInput] = useState({
+  const custInput = {
     firstname: "",
     lastname: "",
     email: "",
     password: "",
     confirmpassword: "",
-  });
-  const [restaurantInput, setRestaurantInput] = useState({
+  };
+  const [customerInput, setCustomerInput] = useState(custInput);
+  const [error, setError] = useState(custInput);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmpasswordRef = useRef<HTMLInputElement>(null);
+
+  const restoInput = {
     firstname: "",
     lastname: "",
     email: "",
@@ -37,7 +46,16 @@ export default function Signup() {
     address: "",
     fssaiNumber: "",
     gstNumber: "",
-  });
+  };
+  const [restaurantInput, setRestaurantInput] = useState(restoInput);
+  const [restoError, setRestoError] = useState(restoInput);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const restaurantNameRef = useRef<HTMLInputElement>(null);
+  const cuisineRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
+  const fssaiNumberRef = useRef<HTMLInputElement>(null);
+  const gstNumberRef = useRef<HTMLInputElement>(null);
+
   const [SignUpUser] = useMutation<Post_Signup_Interface>(signUpUser_Mutation);
   const [RegisterResturant] = useMutation<Post_RegisterRestaurant_Interface>(
     RegisterRestaurant_Mutation,
@@ -61,24 +79,13 @@ export default function Signup() {
 
   const handleCustomerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (
-      !customerInput.firstname ||
-      !customerInput.lastname ||
-      !customerInput.email ||
-      !customerInput.password ||
-      !customerInput.confirmpassword
-    ) {
-      toast("All fields are required", {
-        position: "top-right",
-        type: "info",
-      });
-      return;
-    }
     if (customerInput.password !== customerInput.confirmpassword) {
-      toast("Password didnot match", {
-        position: "top-right",
-        type: "warning",
-      });
+      setError((prev) => ({
+        ...prev,
+        confirmpassword: !customerInput.confirmpassword.trim()
+          ? "Confirm Password required"
+          : "Password should be matched",
+      }));
       return;
     }
     try {
@@ -91,7 +98,6 @@ export default function Signup() {
         },
       });
       console.log(response);
-
       if (!response) {
         toast("Invalid credentials! ", {
           position: "top-right",
@@ -100,26 +106,61 @@ export default function Signup() {
         return;
       }
       if (response.data?.SignUp?.success) {
-        setCustomerInput({
-          firstname: "",
-          lastname: "",
-          email: "",
-          password: "",
-          confirmpassword: "",
-        });
-        navigate("/login")
+        setCustomerInput(custInput);
+        navigate("/login");
         toast(response.data?.SignUp?.msg, {
           position: "top-right",
           type: "success",
           theme: "colored",
         });
       }
-    } catch (error) {
-      const err = error as Error;
-      toast(err.message, {
-        position: "top-right",
-        type: "warning",
-      });
+    } catch (error: unknown) {
+      if (CombinedGraphQLErrors.is(error)) {
+        const graphError = error.errors?.[0];
+
+        if (!graphError.extensions?.field) {
+          toast(error.message, {
+            position: "top-right",
+            type: "error",
+          });
+          setError(custInput);
+          return;
+        }
+
+        const field = graphError.extensions?.field as keyof typeof custInput;
+        const message = graphError.message;
+
+        setError((prev) => ({ ...prev, [field]: message }));
+        console.log(field, message);
+
+        switch (field) {
+          case "firstname":
+            firstNameRef.current?.focus();
+            break;
+
+          case "lastname":
+            lastNameRef.current?.focus();
+            break;
+
+          case "email":
+            emailRef.current?.focus();
+            break;
+
+          case "password":
+            passwordRef.current?.focus();
+            break;
+        }
+      } else if (error instanceof Error) {
+        toast(error.message, {
+          position: "top-right",
+          type: "error",
+        });
+      } else {
+        toast("Something wrong.", {
+          position: "top-right",
+          type: "error",
+        });
+      }
     }
   };
 
@@ -127,29 +168,6 @@ export default function Signup() {
     e: React.FormEvent<HTMLFormElement>,
   ) => {
     e.preventDefault();
-
-    const requiredFields = [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "password",
-      "restaurantName",
-      "cuisine",
-      "address",
-    ];
-
-    const isEmpty = requiredFields.some(
-      (field) => !restaurantInput[field as keyof typeof restaurantInput],
-    );
-
-    if (isEmpty) {
-      toast("All required fields are mandatory", {
-        position: "top-right",
-        type: "info",
-      });
-      return;
-    }
 
     try {
       const response = await RegisterResturant({
@@ -174,31 +192,76 @@ export default function Signup() {
           theme: "colored",
         });
         navigate("/login");
-        setRestaurantInput({
-          firstname: "",
-          lastname: "",
-          email: "",
-          phone: "",
-          password: "",
-          restaurantName: "",
-          cuisine: "",
-          address: "",
-          fssaiNumber: "",
-          gstNumber: "",
-        });
+        setRestaurantInput(restoInput);
       } else {
         toast("Restaurant registration failed", {
           position: "top-right",
           type: "warning",
         });
       }
-    } catch (error) {
-      const err = error as Error;
+    } catch (error: unknown) {
+      if (CombinedGraphQLErrors.is(error)) {
+        const graphError = error.errors?.[0];
+        if (!graphError.extensions?.field) {
+          toast(error.message, {
+            position: "top-right",
+            type: "error",
+          });
+          setRestoError(restoInput);
+          return;
+        }
+        const field = graphError.extensions?.field as keyof typeof restoInput;
+        const message = graphError.message;
 
-      toast(err.message, {
-        position: "top-right",
-        type: "warning",
-      });
+        setRestoError((prev) => ({ ...prev, [field]: message }));
+        console.log(field, message);
+
+        switch (field) {
+          case "firstname":
+            firstNameRef.current?.focus();
+            break;
+
+          case "lastname":
+            lastNameRef.current?.focus();
+            break;
+
+          case "email":
+            emailRef.current?.focus();
+            break;
+
+          case "password":
+            passwordRef.current?.focus();
+            break;
+          case "phone":
+            phoneRef.current?.focus();
+            break;
+          case "restaurantName":
+            restaurantNameRef.current?.focus();
+            break;
+          case "cuisine":
+            cuisineRef.current?.focus();
+            break;
+          case "address":
+            addressRef.current?.focus();
+            break;
+          case "fssaiNumber":
+            fssaiNumberRef.current?.focus();
+            break;
+          case "gstNumber":
+            gstNumberRef.current?.focus();
+            break;
+        }
+      } else if (error instanceof Error) {
+        toast(error.message, {
+          position: "top-right",
+          type: "error",
+        });
+      } else {
+        toast("Something wrong", {
+          position: "top-right",
+          type: "error",
+        });
+      }
     }
   };
 
@@ -300,7 +363,15 @@ export default function Signup() {
                       name="firstname"
                       onChange={handleCustomerChange}
                       value={customerInput.firstname}
+                      ref={firstNameRef}
                     />
+                    {error?.firstname ? (
+                      <p className="text-[14px] text-red-400">
+                        {error.firstname}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-400">Last Name</label>
@@ -322,7 +393,15 @@ export default function Signup() {
                       name="lastname"
                       value={customerInput.lastname}
                       onChange={handleCustomerChange}
+                      ref={lastNameRef}
                     />
+                    {error?.lastname ? (
+                      <p className="text-[14px] text-red-400">
+                        {error.lastname}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <div>
                     <label className="text-sm text-gray-400">
@@ -332,21 +411,27 @@ export default function Signup() {
                     <input
                       placeholder="you@example.com"
                       className="
-                mt-2
-                w-full
-                bg-[#191412]
-                border
-                border-[#2E2924]
-                rounded-xl
-                px-5
-                py-4
-                outline-none
-                focus:border-red-500
-                "
+                      mt-2
+                      w-full
+                      bg-[#191412]
+                      border
+                      border-[#2E2924]
+                      rounded-xl
+                      px-5
+                      py-4
+                      outline-none
+                      focus:border-red-500
+                      "
                       name="email"
                       onChange={handleCustomerChange}
                       value={customerInput.email}
+                      ref={emailRef}
                     />
+                    {error?.email ? (
+                      <p className="text-[14px] text-red-400">{error.email}</p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -357,21 +442,29 @@ export default function Signup() {
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         className="
-                  mt-2
-                  w-full
-                  bg-[#191412]
-                  border
-                  border-[#2E2924]
-                  rounded-xl
-                  px-5
-                  py-4
-                  outline-none
-                  focus:border-red-500
-                  "
+                        mt-2
+                        w-full
+                        bg-[#191412]
+                        border
+                        border-[#2E2924]
+                        rounded-xl
+                        px-5
+                        py-4
+                        outline-none
+                        focus:border-red-500
+                        "
                         name="password"
                         onChange={handleCustomerChange}
                         value={customerInput.password}
+                        ref={passwordRef}
                       />
+                      {error?.password ? (
+                        <p className="text-[14px] text-red-400">
+                          {error.password}
+                        </p>
+                      ) : (
+                        ""
+                      )}
 
                       <button
                         onClick={() => setShowPassword(!showPassword)}
@@ -391,11 +484,11 @@ export default function Signup() {
                     <label className="text-sm text-gray-400">
                       Confirm Password
                     </label>
-
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="
+                    <div className="relative">
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        className="
                       mt-2
                       w-full
                       bg-[#191412]
@@ -407,10 +500,30 @@ export default function Signup() {
                       outline-none
                       focus:border-red-500
                       "
-                      name="confirmpassword"
-                      onChange={handleCustomerChange}
-                      value={customerInput.confirmpassword}
-                    />
+                        name="confirmpassword"
+                        onChange={handleCustomerChange}
+                        value={customerInput.confirmpassword}
+                        ref={confirmpasswordRef}
+                      />
+                      {error?.confirmpassword ? (
+                        <p className="text-[14px] text-red-400">
+                          {error.confirmpassword}
+                        </p>
+                      ) : (
+                        ""
+                      )}
+                      <button
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-5 top-6 text-gray-400"
+                        type="button"
+                      >
+                        {showPassword ? (
+                          <FaRegEyeSlash size={20} />
+                        ) : (
+                          <FaEye size={20} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -444,7 +557,15 @@ export default function Signup() {
                       value={restaurantInput.firstname}
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      ref={firstNameRef}
                     />
+                    {restoError?.firstname ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.firstname}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -456,7 +577,15 @@ export default function Signup() {
                       value={restaurantInput.lastname}
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      ref={lastNameRef}
                     />
+                    {restoError?.lastname ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.lastname}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -472,6 +601,13 @@ export default function Signup() {
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
+                    {restoError?.email ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.email}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -482,10 +618,20 @@ export default function Signup() {
                     <input
                       placeholder="+91 9876543210"
                       name="phone"
+                      type="number"
+                      maxLength={10}
                       value={restaurantInput.phone}
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                      ref={phoneRef}
                     />
+                    {restoError?.phone ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.phone}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -500,6 +646,13 @@ export default function Signup() {
                         onChange={handleRestaurantChange}
                         className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                       />
+                      {restoError?.password ? (
+                        <p className="text-[14px] text-red-400">
+                          {restoError.password}
+                        </p>
+                      ) : (
+                        ""
+                      )}
 
                       <button
                         type="button"
@@ -533,6 +686,13 @@ export default function Signup() {
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
+                    {restoError?.restaurantName ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.restaurantName}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -545,6 +705,13 @@ export default function Signup() {
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
+                    {restoError?.cuisine ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.cuisine}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -557,6 +724,13 @@ export default function Signup() {
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
+                    {restoError?.address ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.address}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -571,6 +745,13 @@ export default function Signup() {
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
+                    {restoError?.fssaiNumber ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.fssaiNumber}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
 
                   <div>
@@ -583,6 +764,13 @@ export default function Signup() {
                       onChange={handleRestaurantChange}
                       className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
                     />
+                    {restoError?.gstNumber ? (
+                      <p className="text-[14px] text-red-400">
+                        {restoError.gstNumber}
+                      </p>
+                    ) : (
+                      ""
+                    )}
                   </div>
                 </div>
 

@@ -58,34 +58,5 @@ export const isAdmin = (ctx: Context) => {
   }
 };
 
-export const checkemail = (email: string): string => {
-  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
-  if (!emailRegex.test(email.trim())) {
-    throw new Error("Please enter a valid email address.");
-  }
-
-  return email.trim().toLowerCase();
-};
-
-export const checkPassword = (password: string): string => {
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/;
-
-  if (!passwordRegex.test(password)) {
-    throw new Error(
-      "Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, a number, and a special character.",
-    );
-  }
-
-  return password.trim();
-};
-
-export const checkPhone=(phone: string): string=>{
-  const phoneRegex = /^[6-9]\d{9}$/;
-  if (!phoneRegex.test(phone)) {
-    throw new Error("Invalid phone number");
-  }
-  return phone
-}
 

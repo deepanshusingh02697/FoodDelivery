@@ -1,17 +1,27 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { accessCookieOptions, setToken } from "../../lib/jwtCookie";
+import { Context, isAdmin, isAuth, isOwner } from "../context";
 import {
+  checkAddress,
+  checkCategory,
+  checkCuisine,
+  checkDescription,
   checkemail,
+  checkFirstName,
+  checkFssaiNumber,
+  checkGstNumber,
+  checkImageUrl,
+  checkLastName,
+  checkName,
   checkPassword,
   checkPhone,
-  Context,
-  isAdmin,
-  isAuth,
-  isOwner,
-} from "../context";
+  checkPrice,
+  checkRestaurantName,
+} from "../../Validation/validate";
 import { razorpay } from "../../Razorpay/Razorpay";
 import crypto from "crypto";
+import { GraphQLError } from "graphql";
 
 export const resolvers = {
   Query: {
@@ -286,15 +296,11 @@ export const resolvers = {
       },
       _ctx: unknown,
     ) => {
-      const { firstname, lastname, email, password } = args;
-      if (
-        !firstname.trim() ||
-        !lastname.trim() ||
-        !email.trim() ||
-        !password.trim()
-      ) {
-        throw new Error("All fields are required");
-      }
+      checkFirstName(args.firstname);
+      checkLastName(args.lastname);
+      checkemail(args.email);
+      checkPassword(args.password);
+
       const existUser = await prisma.user.findUnique({
         where: { email: args.email },
       });
@@ -302,10 +308,6 @@ export const resolvers = {
       if (existUser) throw new Error("Email already exist");
 
       const hashPassword = await bcrypt.hash(args.password.trim(), 10);
-
-      checkemail(args.email);
-
-      checkPassword(args.password);
 
       const user = await prisma.user.create({
         data: {
@@ -324,8 +326,15 @@ export const resolvers = {
       args: { email: string; password: string },
       ctx: Context,
     ) => {
-      if (!args.email || !args.password) {
-        throw new Error("All fields required");
+      checkemail(args.email);
+      // checkPassword(args.password);
+      if (!args.password.trim()) {
+        throw new GraphQLError("Password is required", {
+          extensions: {
+            code: "Bad Input",
+            field: "password",
+          },
+        });
       }
       const userExist = await prisma.user.findUnique({
         where: { email: args.email.toLowerCase().trim() },
@@ -487,37 +496,16 @@ export const resolvers = {
       },
       _ctx: unknown,
     ) => {
-      if (args.firstname.trim().length < 2 || args.lastname.trim().length < 2) {
-        throw new Error("Firstname and lastname required");
-      }
+      checkFirstName(args.firstname);
+      checkLastName(args.lastname);
       checkemail(args.email);
-      checkPassword(args.password);
       checkPhone(args.phone);
-
-      if (args.restaurantName.trim().length < 3) {
-        throw new Error("Restaurant name must be at least 3 of characters");
-      }
-      if (!args.cuisine?.trim()) {
-        throw new Error("Cuisine is required");
-      }
-      if (!args.address?.trim()) {
-        throw new Error("Address is required");
-      }
-      if (args.fssaiNumber) {
-        const fssaiRegex = /^\d{14}$/;
-
-        if (!fssaiRegex.test(args.fssaiNumber.trim())) {
-          throw new Error("FSSAI number must be exactly 14 digits");
-        }
-      }
-      if (args.gstNumber) {
-        const gstRegex =
-          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-
-        if (!gstRegex.test(args.gstNumber.trim().toUpperCase())) {
-          throw new Error("Invalid GST number format");
-        }
-      }
+      checkPassword(args.password);
+      checkRestaurantName(args.restaurantName);
+      checkCuisine(args.cuisine);
+      checkAddress(args.address);
+      checkFssaiNumber(args.fssaiNumber);
+      checkGstNumber(args.gstNumber);
 
       const existUser = await prisma.user.findUnique({
         where: { email: args.email },
@@ -605,6 +593,11 @@ export const resolvers = {
       ctx: Context,
     ) => {
       isOwner(ctx);
+      checkName(args.name)
+      checkDescription(args.description)
+      checkPrice(args.price)
+      checkCategory(args.category)
+      checkImageUrl(args.imageUrl)
 
       const restaurant = await prisma.restaurant.findFirst({
         where: { ownerId: ctx.userId!, status: "APPROVED" },
@@ -624,7 +617,7 @@ export const resolvers = {
       const menu = await prisma.menuItem.create({
         data: {
           name: args.name,
-          description: args.description,
+          description: args.description?.trim(),
           price: Math.round(args.price * 100) / 100,
           category: args.category,
           isVeg: args.isVeg,
@@ -1079,7 +1072,7 @@ export const resolvers = {
         where: { id: Number(args.cartId) },
       });
       if (!cart) throw new Error("Cart not found");
-      if (cart.userId !== ctx.userId) throw new Error("this isn't your cart"); 
+      if (cart.userId !== ctx.userId) throw new Error("this isn't your cart");
 
       await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 

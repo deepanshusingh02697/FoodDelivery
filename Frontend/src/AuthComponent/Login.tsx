@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 import { IoShieldCheckmark } from "react-icons/io5";
 import { FaUsers } from "react-icons/fa";
@@ -21,6 +21,7 @@ import {
 import { useAppDispatch } from "../Redux/hooks";
 import { loginSuccess } from "../Redux/Slices/authSlice";
 import LeftSection from "./LeftSection";
+import { CombinedGraphQLErrors } from "@apollo/client";
 
 type LoginRole = "CUSTOMER" | "OWNER" | "ADMIN" | "DELIVERY_PARTNER";
 
@@ -28,7 +29,12 @@ export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<LoginRole>("CUSTOMER");
-  const [loginInput, setLoginInput] = useState({ email: "", password: "" });
+
+  const logInput = { email: "", password: "" };
+  const [loginInput, setLoginInput] = useState(logInput);
+  const [error, setError] = useState(loginInput);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const [LogInUser, { loading: customerLoading }] =
     useMutation<Post_Login_Interface>(logInUser_Mutation);
@@ -50,15 +56,6 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!loginInput.email || !loginInput.password) {
-      toast("Email and password are required", {
-        position: "top-right",
-        type: "info",
-      });
-      return;
-    }
-
     try {
       const variables = {
         email: loginInput.email,
@@ -130,9 +127,44 @@ export default function Login() {
           toast("Login failed", { position: "top-right", type: "warning" });
         }
       }
-    } catch (error) {
-      const err = error as Error;
-      toast(err.message, { position: "top-right", type: "warning" });
+    } catch (error: unknown) {
+      if (CombinedGraphQLErrors.is(error)) {
+        const graphError = error.errors?.[0];
+        console.log(graphError);
+
+        if (!graphError.extensions?.field) {
+          toast(error.message, {
+            position: "top-right",
+            type: "error",
+          });
+          setError(logInput);
+          return;
+        }
+        const field = graphError.extensions?.field as keyof typeof logInput;
+        const message = graphError.message;
+
+        setError((prev) => ({ ...prev, [field]: message }));
+
+        switch (field) {
+          case "email":
+            emailRef.current?.focus();
+            break;
+
+          case "password":
+            passwordRef.current?.focus();
+            break;
+        }
+      } else if (error instanceof Error) {
+        toast(error.message, {
+          position: "top-right",
+          type: "error",
+        });
+      } else {
+        toast("Something wrong.", {
+          position: "top-right",
+          type: "error",
+        });
+      }
     }
   };
 
@@ -215,7 +247,9 @@ export default function Login() {
               </div>
               <div
                 className={`border-2 bg-[#191412] ${
-                  role === "DELIVERY_PARTNER" ? "border-red-500" : "border-[#2E2924]"
+                  role === "DELIVERY_PARTNER"
+                    ? "border-red-500"
+                    : "border-[#2E2924]"
                 } rounded-xl p-4 text-center cursor-pointer`}
                 onClick={() => setRole("DELIVERY_PARTNER")}
               >
@@ -223,7 +257,6 @@ export default function Login() {
               </div>
             </div>
           </div>
-
           <form onSubmit={handleSubmit}>
             <div className="mt-10 space-y-5">
               <div>
@@ -235,7 +268,13 @@ export default function Login() {
                   value={loginInput.email}
                   onChange={handleChange}
                   className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                  ref={emailRef}
                 />
+                {error?.email ? (
+                  <p className="text-[14px] text-red-400">{error?.email}</p>
+                ) : (
+                  ""
+                )}
               </div>
 
               <div>
@@ -248,7 +287,15 @@ export default function Login() {
                     value={loginInput.password}
                     onChange={handleChange}
                     className="mt-2 w-full bg-[#191412] border border-[#2E2924] rounded-xl px-5 py-4 outline-none focus:border-red-500"
+                    ref={passwordRef}
                   />
+                  {error?.password ? (
+                    <p className="text-[14px] text-red-400">
+                      {error?.password}
+                    </p>
+                  ) : (
+                    ""
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
