@@ -33,15 +33,88 @@ export default function OwnerAddMenu() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-
+  const menuError = {
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    stockQuantity: "",
+  };
+  const [error, setError] = useState(menuError);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const categoryRef = useRef<HTMLSelectElement>(null);
   const vegButtonRef = useRef<HTMLButtonElement>(null);
-  
 
+  const validateMenuItem = () => {
+    const errors = {
+      name: "",
+      description: "",
+      price: "",
+      category: "",
+      stockQuantity: "",
+    };
+    let isValid = true;
+    const menuName = name.trim();
+    if (!menuName) {
+      errors.name = "Name is required";
+      isValid = false;
+    } else if (menuName.length < 3) {
+      errors.name = "Name must be at least 3 characters long";
+      isValid = false;
+    } else if (menuName.length > 100) {
+      errors.name = "Name cannot exceed 100 characters";
+      isValid = false;
+    }
+    const desc = description.trim();
+    if (desc && desc.length > 500) {
+      errors.description = "Description cannot exceed 500 characters";
+      isValid = false;
+    }
+    if (!price.trim()) {
+      errors.price = "Price is required";
+      isValid = false;
+    } else {
+      const value = Number(price);
+      if (Number.isNaN(value)) {
+        errors.price = "Price must be a valid number";
+        isValid = false;
+      } else if (value <= 0) {
+        errors.price = "Price must be greater than 0";
+        isValid = false;
+      }
+    }
+    const cat = category.trim();
+    if (!cat || cat==="Starters") {
+      errors.category = "Category is required";
+      isValid = false;
+    } else if (cat.length < 2) {
+      errors.category = "Category must be at least 2 characters";
+      isValid = false;
+    } else if (cat.length > 30) {
+      errors.category = "Category cannot exceed 30 characters";
+      isValid = false;
+    }
+    if (trackStock) {
+      if (!stockQuantity.trim()) {
+        errors.stockQuantity = "Stock quantity is required";
+        isValid = false;
+      } else {
+        const qty = Number(stockQuantity);
+        if (Number.isNaN(qty)) {
+          errors.stockQuantity = "Stock quantity must be a number";
+          isValid = false;
+        } else if (qty < 0) {
+          errors.stockQuantity = "Stock quantity cannot be negative";
+          isValid = false;
+        }
+      }
+    }
+    setError(errors);
+    return isValid;
+  };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -89,6 +162,7 @@ export default function OwnerAddMenu() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateMenuItem()) return;
 
     try {
       const imageUrl = await uploadImage();
@@ -97,7 +171,7 @@ export default function OwnerAddMenu() {
         variables: {
           name: name.trim(),
           description: description.trim() || undefined,
-          price: !price?0.0:parseFloat(price),
+          price: !price ? 0.0 : parseFloat(price),
           category,
           isVeg,
           imageUrl,
@@ -111,7 +185,7 @@ export default function OwnerAddMenu() {
         resetForm();
         navigate("/owner/menu");
       }
-    } catch (error:unknown) {
+    } catch (error: unknown) {
       // console.error(err);
       // toast.error(err instanceof Error ? err.message : "Couldn't add menu item");
       if (CombinedGraphQLErrors.is(error)) {
@@ -130,9 +204,9 @@ export default function OwnerAddMenu() {
         const message = graphError.message;
 
         toast(message, {
-            position: "top-right",
-            type: "error",
-          });
+          position: "top-right",
+          type: "error",
+        });
 
         switch (field) {
           case "name":
@@ -151,7 +225,7 @@ export default function OwnerAddMenu() {
             vegButtonRef.current?.focus();
             break;
           case "description":
-            descriptionRef.current?.focus()
+            descriptionRef.current?.focus();
         }
       } else if (error instanceof Error) {
         toast(error.message, {
@@ -207,11 +281,20 @@ export default function OwnerAddMenu() {
           <label className="block text-sm text-gray-400 mb-2">Name *</label>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              setError((prev) => ({
+                ...prev,
+                name: "",
+              }));
+            }}
             placeholder="e.g. Paneer Butter Masala"
             className="w-full bg-[#0e0e0e] rounded-lg px-4 py-3 border border-white/10"
             ref={nameRef}
           />
+          {error.name && (
+            <p className="text-red-500 text-sm mt-1">{error.name}</p>
+          )}
         </div>
 
         <div>
@@ -220,12 +303,21 @@ export default function OwnerAddMenu() {
           </label>
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setError((prev) => ({
+                ...prev,
+                description: "",
+              }));
+            }}
             placeholder="Short description of the dish"
             rows={3}
             className="w-full bg-[#0e0e0e] rounded-lg px-4 py-3 border border-white/10 resize-none"
             ref={descriptionRef}
           />
+          {error.description && (
+            <p className="text-red-500 text-sm mt-1">{error.description}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -238,11 +330,20 @@ export default function OwnerAddMenu() {
               min="0"
               step="0.01"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => {
+                setPrice(e.target.value);
+                setError((prev) => ({
+                  ...prev,
+                  price: "",
+                }));
+              }}
               placeholder="299"
               className="w-full bg-[#0e0e0e] rounded-lg px-4 py-3 border border-white/10"
               ref={priceRef}
             />
+            {error.price && (
+              <p className="text-red-500 text-sm mt-1">{error.price}</p>
+            )}
           </div>
 
           <div>
@@ -251,7 +352,13 @@ export default function OwnerAddMenu() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setError((prev) => ({
+                  ...prev,
+                  category: "",
+                }));
+              }}
               className="w-full bg-[#0e0e0e] rounded-lg px-4 py-3 border border-white/10"
               ref={categoryRef}
             >
@@ -261,6 +368,9 @@ export default function OwnerAddMenu() {
                 </option>
               ))}
             </select>
+            {error.category && (
+              <p className="text-red-500 text-sm mt-1">{error.category}</p>
+            )}
           </div>
         </div>
 
@@ -287,7 +397,6 @@ export default function OwnerAddMenu() {
                   ? "bg-red-500/20 border-red-500 text-red-400"
                   : "border-white/10 text-gray-400"
               }`}
-              
             >
               <div className="h-4 w-4 bg-red-600"></div> Non-Veg
             </button>
@@ -310,10 +419,19 @@ export default function OwnerAddMenu() {
               type="number"
               min="0"
               value={stockQuantity}
-              onChange={(e) => setStockQuantity(e.target.value)}
+              onChange={(e) => {
+                setStockQuantity(e.target.value);
+                setError((prev) => ({
+                  ...prev,
+                  stockQuantity: "",
+                }));
+              }}
               placeholder="Available quantity"
               className="w-full bg-[#0e0e0e] rounded-lg px-4 py-3 border border-white/10 mt-3"
             />
+          )}
+          {error.stockQuantity && (
+            <p className="text-red-500 text-sm mt-1">{error.stockQuantity}</p>
           )}
         </div>
 

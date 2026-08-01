@@ -65,6 +65,7 @@ export default function Signup() {
   const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCustomerInput((prev) => ({ ...prev, [name]: value }));
+    setError((prev) => ({...prev,[name]: ""}));
   };
   const handleRestaurantChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -75,10 +76,68 @@ export default function Signup() {
       ...prev,
       [name]: value,
     }));
+    setRestoError((prev) => ({
+    ...prev,
+    [name]: "",
+  }));
   };
 
+  const validateCustomer = () => {
+    const errors = {
+      firstname: "",
+      lastname: "",
+      email: "",
+      password: "",
+      confirmpassword: "",
+    };
+
+    let isValid = true;
+
+    if (!customerInput.firstname.trim()) {
+      errors.firstname = "First name is required";
+      isValid = false;
+    }
+
+    if (!customerInput.lastname.trim()) {
+      errors.lastname = "Last name is required";
+      isValid = false;
+    }
+
+    if (!customerInput.email.trim()) {
+      errors.email = "Email is required";
+      isValid = false;
+    } else if (
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(customerInput.email)
+    ) {
+      errors.email = "Invalid email address";
+      isValid = false;
+    }
+
+    if (!customerInput.password) {
+      errors.password = "Password is required";
+      isValid = false;
+    } else if (customerInput.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+      isValid = false;
+    }
+
+    if (!customerInput.confirmpassword) {
+      errors.confirmpassword = "Confirm Password is required";
+      isValid = false;
+    } else if (customerInput.password !== customerInput.confirmpassword) {
+      errors.confirmpassword = "Passwords do not match";
+      isValid = false;
+    }
+
+    setError(errors);
+
+    return isValid;
+  };
   const handleCustomerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!validateCustomer()) return;
+
     if (customerInput.password !== customerInput.confirmpassword) {
       setError((prev) => ({
         ...prev,
@@ -164,10 +223,142 @@ export default function Signup() {
     }
   };
 
+  const validateRestaurant = () => {
+    const errors = {
+      firstname: "",
+      lastname: "",
+      email: "",
+      phone: "",
+      password: "",
+      restaurantName: "",
+      cuisine: "",
+      address: "",
+      fssaiNumber: "",
+      gstNumber: "",
+    };
+
+    let isValid = true;
+
+    const firstName = restaurantInput.firstname.trim();
+    if (!firstName) {
+      errors.firstname = "First name is required";
+      isValid = false;
+    } else if (firstName.length < 2) {
+      errors.firstname = "First name must be atleast two character long";
+      isValid = false;
+    } else if (firstName.length > 30) {
+      errors.firstname = "First name cannot exceed 30 characters";
+      isValid = false;
+    } else if (!/^[A-Za-z]+(?:[ -][A-Za-z]+)*$/.test(firstName)) {
+      errors.firstname =
+        "First name can only contain letters, spaces and hyphens (-) only";
+      isValid = false;
+    }
+
+    const lastName = restaurantInput.lastname.trim();
+    if (!lastName) {
+      errors.lastname = "Last name is required";
+      isValid = false;
+    } else if (lastName.length < 2) {
+      errors.lastname = "Last name must be atleast two character long";
+      isValid = false;
+    } else if (lastName.length > 30) {
+      errors.lastname = "Last name cannot exceed 30 characters";
+      isValid = false;
+    } else if (!/^[A-Za-z]+(?:[ -][A-Za-z]+)*$/.test(lastName)) {
+      errors.lastname =
+        "Last name can only contain letters, spaces and hyphens (-) only";
+      isValid = false;
+    }
+
+    const email = restaurantInput.email.trim();
+    if (!email) {
+      errors.email = "Email is required";
+      isValid = false;
+    } else if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)
+    ) {
+      errors.email = "Enter a valid email address";
+      isValid = false;
+    }
+
+    const phone = restaurantInput.phone.trim();
+    if (!phone) {
+      errors.phone = "Phone number is required";
+      isValid = false;
+    } else if (!/^[6-9]\d{9}$/.test(phone)) {
+      errors.phone = "Enter a valid 10-digit phone number";
+      isValid = false;
+    }
+
+    const password = restaurantInput.password.trim();
+    if (!password) {
+      errors.password = "Password is required";
+      isValid = false;
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/.test(
+        password,
+      )
+    ) {
+      errors.password =
+        "Password must contain uppercase, lowercase, number and special character.";
+      isValid = false;
+    }
+
+    const restaurantName = restaurantInput.restaurantName.trim();
+    if (!restaurantName) {
+      errors.restaurantName = "Restaurant name is required";
+      isValid = false;
+    } else if (restaurantName.length < 3) {
+      errors.restaurantName =
+        "Restaurant name must be at least 3 characters long";
+      isValid = false;
+    } else if (restaurantName.length > 100) {
+      errors.restaurantName = "Restaurant name cannot exceed 100 characters";
+      isValid = false;
+    }
+
+    const cuisine = restaurantInput.cuisine.trim();
+    if (!cuisine) {
+      errors.cuisine = "Cuisine is required";
+      isValid = false;
+    } else if (cuisine.length < 3) {
+      errors.cuisine = "Cuisine must be at least 3 characters long";
+      isValid = false;
+    }
+
+    const address = restaurantInput.address.trim();
+    if (!address) {
+      errors.address = "Restaurant address is required";
+      isValid = false;
+    } else if (address.length < 10) {
+      errors.address = "Address must be at least 10 characters long";
+      isValid = false;
+    } else if (address.length > 250) {
+      errors.address = "Address cannot exceed 250 characters";
+      isValid = false;
+    }
+
+    const fssai = restaurantInput.fssaiNumber.trim();
+    if (fssai && !/^\d{14}$/.test(fssai)) {
+      errors.fssaiNumber = "FSSAI number must contain exactly 14 digits";
+      isValid = false;
+    }
+
+    const gst = restaurantInput.gstNumber.trim().toUpperCase();
+    if (gst && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gst)) {
+      errors.gstNumber = "Enter a valid GST number";
+      isValid = false;
+    }
+
+    setRestoError(errors);
+    return isValid;
+  };
   const handleRestaurantSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
   ) => {
     e.preventDefault();
+    if (!validateRestaurant()) return;
 
     try {
       const response = await RegisterResturant({

@@ -52,10 +52,49 @@ export default function Login() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginInput((prev) => ({ ...prev, [name]: value }));
+    setError((prev) => ({ ...prev, [name]: "" }));
   };
 
+  const validateLogin = () => {
+    const errors = {
+      email: "",
+      password: "",
+    };
+
+    let isValid = true;
+
+    if (!loginInput.email.trim()) {
+      errors.email = "Email is required";
+      isValid = false;
+    } else if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(
+        loginInput.email.trim(),
+      )
+    ) {
+      errors.email = "Enter a valid email address";
+      isValid = false;
+    }
+
+    /* if (!loginInput.password.trim()) {
+      errors.password = "Password is required";
+      isValid = false;
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_\-+=])[A-Za-z\d@$!%*?&^#()_\-+=]{8,}$/.test(
+        loginInput.password.trim(),
+      )
+    ) {
+      errors.password =
+        "Password must contain uppercase, lowercase, number and special character.";
+      isValid = false;
+    } */
+
+    setError(errors);
+
+    return isValid;
+  };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!validateLogin()) return;
     try {
       const variables = {
         email: loginInput.email,
