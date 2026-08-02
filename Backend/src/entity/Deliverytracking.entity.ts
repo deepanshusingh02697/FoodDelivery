@@ -13,9 +13,7 @@ export class DeliveryTracking {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    unique: true,
-  })
+  @Column({ type: "int", unique: true })
   orderId: number;
 
   @OneToOne(() => Order, (order) => order.deliveryTracking, {
@@ -24,10 +22,10 @@ export class DeliveryTracking {
   @JoinColumn({ name: "orderId" })
   order: Order;
 
-  @Column("float")
+  @Column({ type: "float" })
   lat: number;
 
-  @Column("float")
+  @Column({ type: "float" })
   lng: number;
 
   @UpdateDateColumn()

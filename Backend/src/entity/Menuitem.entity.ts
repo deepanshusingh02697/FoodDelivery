@@ -16,47 +16,34 @@ export class MenuItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: "varchar" })
   name: string;
 
-  @Column({
-    type: "text",
-    nullable: true,
-  })
+  @Column({ type: "text", nullable: true })
   description: string;
 
-  @Column()
+  @Column({ type: "varchar" })
   category: string;
 
-  @Column("float")
+  @Column({ type: "float" })
   price: number;
 
-  @Column({
-    default: true,
-  })
+  @Column({ type: "boolean", default: true })
   isVeg: boolean;
 
-  @Column({
-    nullable: true,
-  })
+  @Column({ type: "varchar", nullable: true })
   imageUrl: string;
 
-  @Column({
-    default: true,
-  })
+  @Column({ type: "boolean", default: true })
   isAvailable: boolean;
 
-  @Column({
-    default: false,
-  })
+  @Column({ type: "boolean", default: false })
   trackStock: boolean;
 
-  @Column({
-    nullable: true,
-  })
+  @Column({ type: "int", nullable: true })
   stockQuantity: number;
 
-  @Column()
+  @Column({ type: "int" })
   restaurantId: number;
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.menus, {
     onDelete: "CASCADE",

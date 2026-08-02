@@ -27,15 +27,13 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: "int" })
   userId: number;
-  @ManyToOne(() => User, (user) => user.orders, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => User, (user) => user.orders, { onDelete: "CASCADE" })
   @JoinColumn({ name: "userId" })
   user: User;
 
-  @Column()
+  @Column({ type: "int" })
   restaurantId: number;
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.orders, {
     onDelete: "CASCADE",
@@ -43,14 +41,9 @@ export class Order {
   @JoinColumn({ name: "restaurantId" })
   restaurant: Restaurant;
 
-  @Column({
-    nullable: true,
-  })
+  @Column({ type: "int", nullable: true })
   deliveryPartnerId?: number;
-
-  @ManyToOne(() => User, (user) => user.deliveries, {
-    nullable: true,
-  })
+  @ManyToOne(() => User, (user) => user.deliveries, { nullable: true })
   @JoinColumn({ name: "deliveryPartnerId" })
   deliveryPartner: User;
 
@@ -61,59 +54,35 @@ export class Order {
   })
   status: OrderStatus;
 
-  //fields
-
-  @Column("float")
+  @Column({ type: "float" })
   subtotal: number;
 
-  @Column("float")
+  @Column({ type: "float" })
   deliveryFee: number;
 
-  @Column("float")
+  @Column({ type: "float" })
   totalAmount: number;
 
   @CreateDateColumn()
   placedAt: Date;
 
-  @Column({
-    type: "timestamp",
-    nullable: true,
-  })
+  @Column({ type: "timestamp", nullable: true })
   deliveredAt?: Date;
 
-
-  @Column()
-orderId:number;
-
-@ManyToOne(()=>Order,{
-    onDelete:"CASCADE"
-})
-@JoinColumn({name:"orderId"})
-order:Order;
-
-  //delivery address
-  @Column()
-  deliveryAddressId:number;
-
-  @ManyToOne(()=>Address,(address)=>address.orders,{
-    onDelete:"CASCADE"
+  @Column({ type: "int" })
+  deliveryAddressId: number;
+  @ManyToOne(() => Address, (address) => address.orders, {
+    onDelete: "CASCADE",
   })
-  @JoinColumn({name:"deliveryAddressId"})
-  deliveryAddress:Address
+  @JoinColumn({ name: "deliveryAddressId" })
+  deliveryAddress: Address;
 
-  @Column("text")
-  addressSnapshot:string
+  @Column({ type: "text" })
+  addressSnapshot: string;
 
-  @OneToMany(()=>OrderItem,(item)=>item.order,{
-    cascade:true,
-  })
-  items:OrderItem[]
+  @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
+  items: OrderItem[];
 
-
-  @OneToOne(
-    () => DeliveryTracking,
-    (tracking) => tracking.order
-  )
+  @OneToOne(() => DeliveryTracking, (tracking) => tracking.order)
   deliveryTracking: DeliveryTracking;
-
 }

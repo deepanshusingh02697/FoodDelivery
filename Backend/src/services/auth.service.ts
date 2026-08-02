@@ -29,6 +29,8 @@ export class AuthService {
     return user;
   }
   async login(data: { email: string; password: string }) {
+    console.log(data.email);
+
     const user = await userRepository.findOne({
       where: {
         email: data.email.toLowerCase().trim(),
@@ -80,14 +82,14 @@ export class AuthService {
 
     if (!admin) throw new Error("Invalid credentials");
     if (admin.role !== Role.ADMIN)
-      throw new Error("Invalid credentials to login as owner");
+      throw new Error("Invalid credentials to login as admin");
 
     const passwordMatch = await bcrypt.compare(data.password, admin.password);
     if (!passwordMatch)
       throw new Error("Invalid credentials to login as owner");
     return admin;
   }
-  
+
   async partnerLogin(data: { email: string; password: string }) {
     const partner = await userRepository.findOne({
       where: {
@@ -102,6 +104,38 @@ export class AuthService {
     if (!passwordMatch)
       throw new Error("Invalid credentials to login as owner");
     return partner;
+  }
+  async deliveryPartnerSignUp(data: {
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string;
+    phone: string;
+  }) {
+    const existingUser = await userRepository.findOne({
+      where: {
+        email: data.email.toLowerCase().trim(),
+      },
+    });
+
+    if (existingUser) {
+      throw new Error("Email already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password.trim(), 10);
+
+    const user = userRepository.create({
+      firstname: data.firstname.trim(),
+      lastname: data.lastname.trim(),
+      email: data.email.toLowerCase().trim(),
+      password: hashedPassword,
+      phone: data.phone.trim(),
+      role: Role.DELIVERY_PARTNER,
+    });
+
+    await userRepository.save(user);
+
+    return user;
   }
 }
 export const authService = new AuthService();

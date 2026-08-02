@@ -6,6 +6,7 @@ import type { CreateMenuItem_Mutation_Interface } from "../graphql/Client";
 import { CREATE_MENU_ITEM_Mutation } from "../graphql/Mutation";
 import { FaRupeeSign } from "react-icons/fa";
 import { CombinedGraphQLErrors } from "@apollo/client";
+import { MY_RESTAURANT_MENU_Query } from "../graphql/Query";
 
 const CATEGORIES = [
   "Starters",
@@ -20,7 +21,13 @@ const CATEGORIES = [
 export default function OwnerAddMenu() {
   const navigate = useNavigate();
   const [createMenuItem, { loading: saving }] =
-    useMutation<CreateMenuItem_Mutation_Interface>(CREATE_MENU_ITEM_Mutation);
+    useMutation<CreateMenuItem_Mutation_Interface>(CREATE_MENU_ITEM_Mutation,{
+    refetchQueries: [
+      {
+        query: MY_RESTAURANT_MENU_Query,
+      },
+    ],
+  });
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");

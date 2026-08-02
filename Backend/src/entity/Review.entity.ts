@@ -16,30 +16,23 @@ export class Review {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: "int",
-  })
+  @Column({ type: "int" })
   rating: number;
 
-  @Column({
-    type: "text",
-    nullable: true,
-  })
+  @Column({ type: "text", nullable: true })
   comment: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @Column({ type: "int" })
   userId: number;
 
-  @ManyToOne(() => User, (user) => user.reviews, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => User, (user) => user.reviews, { onDelete: "CASCADE" })
   @JoinColumn({ name: "userId" })
   user: User;
 
-  @Column()
+  @Column({ type: "int" })
   restaurantId: number;
 
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.reviews, {

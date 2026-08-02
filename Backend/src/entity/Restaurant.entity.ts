@@ -19,27 +19,28 @@ export enum RestaurantStatus {
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
 }
+
 @Entity("restaurants")
 export class Restaurant {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: "varchar" })
   restaurantName: string;
 
-  @Column()
+  @Column({ type: "varchar" })
   cuisine: string;
 
-  @Column()
+  @Column({ type: "varchar" })
   address: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", nullable: true })
   fssaiNumber: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", nullable: true })
   gstNumber: string;
 
-  @Column()
+  @Column({ type: "varchar" })
   phone: string;
 
   @Column({
@@ -50,17 +51,15 @@ export class Restaurant {
   status: RestaurantStatus;
 
   // relation
-  @Column()
+  @Column({ type: "int" })
   ownerId: number;
 
-  @ManyToOne(() => User, (user) => user.restaurant, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => User, (user) => user.restaurant, { onDelete: "CASCADE" })
   @JoinColumn({ name: "ownerId" })
   owner: User;
 
-  //admin apporval relation
-  @Column({ nullable: true })
+  //admin approval relation
+  @Column({ type: "int", nullable: true })
   approvedBy?: number;
 
   @ManyToOne(() => User, (user) => user.approvedRestaurants, {
@@ -69,16 +68,10 @@ export class Restaurant {
   @JoinColumn({ name: "approvedBy" })
   admin: User;
 
-  @Column({
-    type: "timestamp",
-    nullable: true,
-  })
+  @Column({ type: "timestamp", nullable: true })
   approvedAt?: Date;
 
-  @Column({
-    type: "text",
-    nullable: true,
-  })
+  @Column({ type: "text", nullable: true })
   adminNote?: string;
 
   //relation

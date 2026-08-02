@@ -14,20 +14,18 @@ import { Restaurant } from "./Restaurant.entity.js";
 import { CartItem } from "./Cartitem.entity.js";
 
 @Entity("carts")
-@Unique(["userId", "restaurantId"]) //only one cart per restaurant
+@Unique(["userId", "restaurantId"])
 export class Cart {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: "integer" })
+  @Column({ type: "int" })
   userId: number;
-  @ManyToOne(() => User, (user) => user.carts, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => User, (user) => user.carts, { onDelete: "CASCADE" })
   @JoinColumn({ name: "userId" })
   user: User;
 
-  @Column({ type: "integer" })
+  @Column({ type: "int" })
   restaurantId: number;
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.carts, {
     onDelete: "CASCADE",
@@ -35,9 +33,7 @@ export class Cart {
   @JoinColumn({ name: "restaurantId" })
   restaurant: Restaurant;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, {
-    cascade: true,
-  })
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
   items: CartItem[];
 
   @CreateDateColumn()

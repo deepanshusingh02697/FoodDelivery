@@ -13,20 +13,13 @@ export class OrderItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  
-  @Column()
+  @Column({ type: "int" })
   orderId: number;
-  @ManyToOne(() => Order, (order) => order.items, {
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(() => Order, (order) => order.items, { onDelete: "CASCADE" })
   @JoinColumn({ name: "orderId" })
   order: Order;
 
-
-
-  @Column({
-    nullable: true,
-  })
+  @Column({ type: "int", nullable: true })
   menuItemId: number;
   @ManyToOne(() => MenuItem, (menuItem) => menuItem.orderItems, {
     nullable: true,
@@ -35,13 +28,12 @@ export class OrderItem {
   @JoinColumn({ name: "menuItemId" })
   menuItem: MenuItem;
 
-
-  @Column()
+  @Column({ type: "varchar" })
   nameSnapshot: string;
 
-  @Column("float")
+  @Column({ type: "float" })
   priceSnapshot: number;
 
-  @Column()
+  @Column({ type: "int" })
   quantity: number;
 }
