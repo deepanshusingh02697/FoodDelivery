@@ -1,14 +1,16 @@
+import "reflect-metadata";
 import "dotenv/config";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express5";
 import express from "express";
 import { createServer } from "node:http";
-import { resolvers } from "./graphql/Resolvers/resolver";
-import { typeDefs } from "./graphql/Typedefs/typeDefs";
-import { Context, createCheckAuth } from "./graphql/context";
-import cookieParser from 'cookie-parser'
-import uploadRouter from './Routes/uploadRoute'
-import cors from 'cors'
+import { resolvers } from "./graphql/Resolvers/resolver.js";
+import { typeDefs } from "./graphql/Typedefs/typeDefs.js";
+import { Context, createCheckAuth } from "./graphql/context.js";
+import cookieParser from "cookie-parser";
+import uploadRouter from "./Routes/uploadRoute.js";
+import cors from "cors";
+import { AppDataSource } from "./src/config/data-source.js";
 
 const app = express();
 app.use(cookieParser())
@@ -35,7 +37,7 @@ const server = new ApolloServer<Context>({
 });
 app.use("/upload", uploadRouter);
 
-async function startServer() {
+/* async function startServer() {
   await server.start();
   app.use("/graphql", express.json(), expressMiddleware<Context>(server,{
     context:createCheckAuth
@@ -43,8 +45,35 @@ async function startServer() {
   httpServer.listen(port, () => {
     console.log(`Server is ready to listen at http://localhost:${port}`);
   });
+} */
+async function startServer(){
+  try {
+    await AppDataSource.initialize()
+    console.log("Database Connected");
+
+    // start apollo
+    await server.start()
+
+    app.use("/graphql",express.json(),expressMiddleware(server,{
+      context:createCheckAuth
+    }))
+
+    httpServer.listen(port,()=>{
+      console.log(`Server is ready to listen at http://localhost:${port}`);
+    })
+    
+  } catch (error) {
+    console.log(error);
+  }
 }
 
-startServer().catch((err) => {
-  console.error("Server failed to start ", err);
+startServer().catch((error) => {
+  console.error(error);
+
+  if (error instanceof Error) {
+    console.error(error.message);
+    console.error(error.stack);
+  }
+
+  throw error;
 });

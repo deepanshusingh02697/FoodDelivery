@@ -157,9 +157,6 @@ type Review {
 
   restaurantId: ID!
   restaurant: Restaurant!
-
-  orderId: ID!
-  order: Order!
 }
 
 type DeliveryTracking {

@@ -1,6 +1,6 @@
 import express from "express";
-import { foodImgUpload } from "../utils/multer";
-import { uploadOnCloudinary } from "../utils/cloudinary";
+import { foodImgUpload } from "../utils/multer.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { verifyAccessToken } from "../lib/jwtCookie";
-import { GraphQLError } from "graphql/error";
+import { verifyAccessToken } from "../lib/jwtCookie.js";
+import { GraphQLError } from "graphql";
 
 export type Context = {
   userId: number | null;
