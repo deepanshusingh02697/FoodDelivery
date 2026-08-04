@@ -9,36 +9,53 @@ import {
   Unique,
   UpdateDateColumn,
 } from "typeorm";
+import { Field, GraphQLISODateTime, ID, Int, ObjectType } from "type-graphql";
+
 import { User } from "./User.entity.js";
 import { Restaurant } from "./Restaurant.entity.js";
 import { CartItem } from "./Cartitem.entity.js";
 
+@ObjectType()
 @Entity("carts")
 @Unique(["userId", "restaurantId"])
 export class Cart {
+  @Field(() => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Field(() => Int)
   @Column({ type: "int" })
   userId: number;
-  @ManyToOne(() => User, (user) => user.carts, { onDelete: "CASCADE" })
+
+  @Field(() => User)
+  @ManyToOne(() => User, (user) => user.carts, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "userId" })
   user: User;
 
+  @Field(() => Int)
   @Column({ type: "int" })
   restaurantId: number;
+
+  @Field(() => Restaurant)
   @ManyToOne(() => Restaurant, (restaurant) => restaurant.carts, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "restaurantId" })
   restaurant: Restaurant;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
+  @Field(() => [CartItem])
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, {
+    cascade: true,
+  })
   items: CartItem[];
 
+  @Field(() => GraphQLISODateTime)
   @CreateDateColumn()
   createdAt: Date;
 
+  @Field(() => GraphQLISODateTime)
   @UpdateDateColumn()
   updatedAt: Date;
 }

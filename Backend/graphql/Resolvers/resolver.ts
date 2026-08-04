@@ -892,7 +892,7 @@ export const resolvers = {
         order: updated,
       };
     },
-
+    
     //Customer
     AddToCart: async (
       _parent: unknown,
