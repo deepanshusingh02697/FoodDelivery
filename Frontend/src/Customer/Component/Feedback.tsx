@@ -14,7 +14,9 @@ import type {
   DeleteReview_Mutation_Interface,
   GetRestaurantReviews_Query_Interface,
   SubmitReview_Mutation_Interface,
+  SubmitReview_Vars,
   UpdateReview_Mutation_Interface,
+  UpdateReview_Vars,
 } from "../../graphql/Client";
 
 interface Prop {
@@ -42,7 +44,7 @@ export default function Feedback({ restaurantId, onRatingChange }: Prop) {
 
   const [submitReview, { loading: submitting }] = useMutation<
     SubmitReview_Mutation_Interface,
-    { restaurantId: string; rating: number; comment: string | null }
+    SubmitReview_Vars
   >(SUBMIT_REVIEW, {
     onCompleted: (res) => {
       if (res.SubmitReview.success) {
@@ -55,7 +57,7 @@ export default function Feedback({ restaurantId, onRatingChange }: Prop) {
 
   const [updateReview, { loading: updating }] = useMutation<
     UpdateReview_Mutation_Interface,
-    { reviewId: string; rating?: number; comment?: string | null }
+    UpdateReview_Vars
   >(UPDATE_REVIEW, {
     onCompleted: (res) => {
       if (res.UpdateReview.success) {
@@ -95,9 +97,11 @@ export default function Feedback({ restaurantId, onRatingChange }: Prop) {
     try {
       await submitReview({
         variables: {
-          restaurantId: String(restaurantId),
-          rating: ratingNum,
-          comment: comment.trim() || null,
+          input: {
+            restaurantId: String(restaurantId),
+            rating: ratingNum,
+            comment: comment.trim() || null,
+          },
         },
       });
     } catch (err) {
@@ -126,9 +130,11 @@ export default function Feedback({ restaurantId, onRatingChange }: Prop) {
     try {
       await updateReview({
         variables: {
-          reviewId,
-          rating: editRating,
-          comment: editComment.trim() || null,
+          input: {
+            reviewId,
+            rating: editRating,
+            comment: editComment.trim() || null,
+          },
         },
       });
     } catch (err) {

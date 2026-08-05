@@ -1,29 +1,18 @@
-import { Arg, Ctx, ID, Int, Mutation, Resolver } from "type-graphql";
-import { CartResponse } from "../../Types/CartResonse.js";
-import { Context, isAuth } from "../../../graphql/context.js";
 import {
   cartItemRepository,
   cartRepository,
   menuItemRepository,
-} from "../../repositories/repository.js";
+} from "../repositories/repository.js";
 
-@Resolver()
-export class CartResolver {
-  @Mutation(() => CartResponse)
-  async AddToCart(
-    @Arg("menuItemId", () => ID) menuItemId: string,
-    @Arg("quantity", () => Int) quantity: number,
-    @Ctx() ctx: Context,
-  ) {
-    isAuth(ctx);
-
-    if (quantity < 1) {
+export class CartService {
+  async AddToCart(input: any, userId: number) {
+    if (input.quantity < 1) {
       throw new Error("Quantity must be greater than 0");
     }
 
     const menuItem = await menuItemRepository.findOne({
       where: {
-        id: Number(menuItemId),
+        id: Number(input.menuItemId),
       },
     });
 
@@ -35,20 +24,20 @@ export class CartResolver {
       throw new Error("This item is currently unavailable");
     }
 
-    if (menuItem.trackStock && (menuItem.stockQuantity ?? 0) < quantity) {
+    if (menuItem.trackStock && (menuItem.stockQuantity ?? 0) < input.quantity) {
       throw new Error(`Only ${menuItem.stockQuantity} left in stock`);
     }
 
     let cart = await cartRepository.findOne({
       where: {
-        userId: ctx.userId!,
+        userId,
         restaurantId: menuItem.restaurantId,
       },
     });
 
     if (!cart) {
       cart = cartRepository.create({
-        userId: ctx.userId!,
+        userId,
         restaurantId: menuItem.restaurantId,
       });
 
@@ -63,7 +52,7 @@ export class CartResolver {
     });
 
     if (cartItem) {
-      const newQuantity = cartItem.quantity + quantity;
+      const newQuantity = cartItem.quantity + input.quantity;
 
       if (menuItem.trackStock && (menuItem.stockQuantity ?? 0) < newQuantity) {
         throw new Error(`Only ${menuItem.stockQuantity} left in stock`);
@@ -75,7 +64,7 @@ export class CartResolver {
       cartItem = cartItemRepository.create({
         cartId: cart.id,
         menuItemId: menuItem.id,
-        quantity,
+        quantity: input.quantity,
         priceAtAdd: menuItem.price,
       });
 
@@ -93,20 +82,10 @@ export class CartResolver {
       },
     });
 
-    return {
-      success: true,
-      msg: "Added to cart",
-      cart: fullCart,
-    };
+    return fullCart;
   }
 
-  @Mutation(() => CartResponse)
-  async DecreaseCartItem(
-    @Arg("cartItemId", () => ID) cartItemId: string,
-    @Ctx() ctx: Context,
-  ) {
-    isAuth(ctx);
-
+  async DecreaseCartItem(cartItemId: string, userId: number) {
     const cartItem = await cartItemRepository.findOne({
       where: {
         id: Number(cartItemId),
@@ -120,7 +99,7 @@ export class CartResolver {
       throw new Error("NOT_FOUND");
     }
 
-    if (cartItem.cart.userId !== ctx.userId) {
+    if (cartItem.cart.userId !== userId) {
       throw new Error("Not your cart item");
     }
 
@@ -131,7 +110,7 @@ export class CartResolver {
       await cartItemRepository.save(cartItem);
     }
 
-    const fullCart = await cartRepository.findOne({
+    return await cartRepository.findOne({
       where: {
         id: cartItem.cartId,
       },
@@ -141,21 +120,9 @@ export class CartResolver {
         },
       },
     });
-
-    return {
-      success: true,
-      msg: "Quantity updated",
-      cart: fullCart,
-    };
   }
 
-  @Mutation(() => CartResponse)
-  async RemoveFromCart(
-    @Arg("cartItemId", () => ID) cartItemId: string,
-    @Ctx() ctx: Context,
-  ) {
-    isAuth(ctx);
-
+  async RemoveFromCart(cartItemId: string, userId: number) {
     const cartItem = await cartItemRepository.findOne({
       where: {
         id: Number(cartItemId),
@@ -169,13 +136,13 @@ export class CartResolver {
       throw new Error("NOT_FOUND");
     }
 
-    if (cartItem.cart.userId !== ctx.userId) {
+    if (cartItem.cart.userId !== userId) {
       throw new Error("Not your cart item");
     }
 
     await cartItemRepository.remove(cartItem);
 
-    const fullCart = await cartRepository.findOne({
+    return await cartRepository.findOne({
       where: {
         id: cartItem.cartId,
       },
@@ -185,21 +152,9 @@ export class CartResolver {
         },
       },
     });
-
-    return {
-      success: true,
-      msg: "Item removed",
-      cart: fullCart,
-    };
   }
 
-  @Mutation(() => CartResponse)
-  async ClearCart(
-    @Arg("cartId", () => ID) cartId: string,
-    @Ctx() ctx: Context,
-  ) {
-    isAuth(ctx);
-
+  async ClearCart(cartId: string, userId: number) {
     const cart = await cartRepository.findOne({
       where: {
         id: Number(cartId),
@@ -210,7 +165,7 @@ export class CartResolver {
       throw new Error("Cart not found");
     }
 
-    if (cart.userId !== ctx.userId) {
+    if (cart.userId !== userId) {
       throw new Error("This isn't your cart");
     }
 
@@ -219,12 +174,25 @@ export class CartResolver {
     });
 
     return {
-      success: true,
-      msg: "Cart cleared",
-      cart: {
-        ...cart,
-        items: [],
-      },
+      ...cart,
+      items: [],
     };
   }
+
+  async GetCart(restaurantId: number, userId: number) {
+    return await cartRepository.findOne({
+      where: {
+        userId,
+        restaurantId: Number(restaurantId),
+      },
+      relations: {
+        items: {
+          menuItem: true,
+        },
+        restaurant: true,
+      },
+    });
+  }
 }
+
+export const cartService = new CartService();

@@ -16,9 +16,9 @@ import {
   ObjectType,
 } from "type-graphql";
 
-import { Restaurant } from "./Restaurant.entity.js";
-import { CartItem } from "./Cartitem.entity.js";
-import { OrderItem } from "./Orderitem.entity.js";
+import { Restaurant } from "./restaurant.entity.js";
+import { CartItem } from "./cartitem.entity.js";
+import { OrderItem } from "./orderitem.entity.js";
 
 @ObjectType()
 @Entity("menuitems")

@@ -13,8 +13,8 @@ import {
   ObjectType,
 } from "type-graphql";
 
-import { Cart } from "./Cart.entity.js";
-import { MenuItem } from "./Menuitem.entity.js";
+import { Cart } from "./cart.entity.js";
+import { MenuItem } from "./menuitem.entity.js";
 
 @ObjectType()
 @Entity("cartitems")

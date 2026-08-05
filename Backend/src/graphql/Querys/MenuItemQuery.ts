@@ -1,6 +1,6 @@
 import { Arg, Ctx, Int, Query, Resolver } from "type-graphql";
-import { MenuItem } from "../../entity/Menuitem.entity.js";
-import { Context, isAuth, isOwner } from "../../../graphql/context.js";
+import { MenuItem } from "../../entity/menuitem.entity.js";
+import { Context, isAuth, isOwner } from "../../middleware/context.js";
 import {
   menuItemRepository,
   restaurantRepository,

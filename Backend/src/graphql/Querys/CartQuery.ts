@@ -1,6 +1,6 @@
 import { Arg, Ctx, ID, Int, Query, Resolver } from "type-graphql";
-import { Context, isAuth } from "../../../graphql/context.js";
-import { Cart } from "../../entity/Cart.entity.js";
+import { Context, isAuth } from "../../middleware/context.js";
+import { Cart } from "../../entity/cart.entity.js";
 import { cartRepository } from "../../repositories/repository.js";
 
 @Resolver()

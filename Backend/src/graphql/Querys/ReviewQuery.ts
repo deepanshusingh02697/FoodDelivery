@@ -1,5 +1,5 @@
 import { Arg, ID, Query, Resolver } from "type-graphql";
-import { Review } from "../../entity/Review.entity.js";
+import { Review } from "../../entity/review.entity.js";
 import { reviewRepository } from "../../repositories/repository.js";
 
 @Resolver()

@@ -15,11 +15,11 @@ import {
   registerEnumType,
 } from "type-graphql";
 
-import { Restaurant } from "./Restaurant.entity.js";
-import { Order } from "./Order.entity.js";
-import { Cart } from "./Cart.entity.js";
-import { Review } from "./Review.entity.js";
-import { Address } from "./Address.entity.js";
+import { Restaurant } from "./restaurant.entity.js";
+import { Order } from "./order.entity.js";
+import { Cart } from "./cart.entity.js";
+import { Review } from "./review.entity.js";
+import { Address } from "./address.entity.js";
 
 export enum Role {
   CUSTOMER = "CUSTOMER",

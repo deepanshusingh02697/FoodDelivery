@@ -1,6 +1,6 @@
 import { Ctx, Query, Resolver } from "type-graphql";
-import { Context, isAuth, isOwner } from "../../../graphql/context.js";
-import { Order } from "../../entity/Order.entity.js";
+import { Context, isAuth, isOwner } from "../../middleware/context.js";
+import { Order } from "../../entity/order.entity.js";
 import { orderRepository, restaurantRepository } from "../../repositories/repository.js";
 
 @Resolver()

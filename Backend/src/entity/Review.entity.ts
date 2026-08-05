@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from "typeorm";
-import { User } from "./User.entity.js";
-import { Restaurant } from "./Restaurant.entity.js";
+import { User } from "./user.entity.js";
+import { Restaurant } from "./restaurant.entity.js";
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from "type-graphql";
 
 @ObjectType()

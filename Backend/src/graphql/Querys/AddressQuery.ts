@@ -1,6 +1,6 @@
 import { Ctx, Query, Resolver } from "type-graphql";
-import { Address } from "../../entity/Address.entity.js";
-import { Context, isAuth } from "../../../graphql/context.js";
+import { Address } from "../../entity/address.entity.js";
+import { Context, isAuth } from "../../middleware/context.js";
 import { addressRepository } from "../../repositories/repository.js";
 
 @Resolver()

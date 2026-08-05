@@ -21,13 +21,13 @@ const CATEGORIES = [
 export default function OwnerAddMenu() {
   const navigate = useNavigate();
   const [createMenuItem, { loading: saving }] =
-    useMutation<CreateMenuItem_Mutation_Interface>(CREATE_MENU_ITEM_Mutation,{
-    refetchQueries: [
-      {
-        query: MY_RESTAURANT_MENU_Query,
-      },
-    ],
-  });
+    useMutation<CreateMenuItem_Mutation_Interface>(CREATE_MENU_ITEM_Mutation, {
+      refetchQueries: [
+        {
+          query: MY_RESTAURANT_MENU_Query,
+        },
+      ],
+    });
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -94,7 +94,7 @@ export default function OwnerAddMenu() {
       }
     }
     const cat = category.trim();
-    if (!cat || cat==="Starters") {
+    if (!cat || cat === "Starters") {
       errors.category = "Category is required";
       isValid = false;
     } else if (cat.length < 2) {
@@ -176,14 +176,16 @@ export default function OwnerAddMenu() {
 
       const { data } = await createMenuItem({
         variables: {
-          name: name.trim(),
-          description: description.trim() || undefined,
-          price: !price ? 0.0 : parseFloat(price),
-          category,
-          isVeg,
-          imageUrl,
-          trackStock,
-          stockQuantity: trackStock ? Number(stockQuantity) : undefined,
+          input: {
+            name: name.trim(),
+            description: description.trim() || undefined,
+            price: !price ? 0.0 : parseFloat(price),
+            category,
+            isVeg,
+            imageUrl,
+            trackStock,
+            stockQuantity: trackStock ? Number(stockQuantity) : undefined,
+          },
         },
       });
 

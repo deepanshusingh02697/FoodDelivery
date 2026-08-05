@@ -10,8 +10,8 @@ import {
 } from "typeorm";
 import { Field, Float, GraphQLISODateTime, ID, ObjectType } from "type-graphql";
 
-import { User } from "./User.entity.js";
-import { Order } from "./Order.entity.js";
+import { User } from "./user.entity.js";
+import { Order } from "./order.entity.js";
 
 @ObjectType()
 @Entity("addresses")

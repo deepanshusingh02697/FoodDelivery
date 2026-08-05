@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Order } from "../entity/Order.entity.js";
+import { Order } from "../entity/order.entity.js";
 
 @ObjectType()
 export class OrderResponse{

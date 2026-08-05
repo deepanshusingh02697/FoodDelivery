@@ -11,9 +11,9 @@ import {
 } from "typeorm";
 import { Field, GraphQLISODateTime, ID, Int, ObjectType } from "type-graphql";
 
-import { User } from "./User.entity.js";
-import { Restaurant } from "./Restaurant.entity.js";
-import { CartItem } from "./Cartitem.entity.js";
+import { User } from "./user.entity.js";
+import { Restaurant } from "./restaurant.entity.js";
+import { CartItem } from "./cartitem.entity.js";
 
 @ObjectType()
 @Entity("carts")

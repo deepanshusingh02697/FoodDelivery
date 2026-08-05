@@ -253,18 +253,8 @@ export const ADMIN_DASHBOARD_INTERFACE = gql`
   }
 `;
 export const FILTER_RESTAURANTS_Query = gql`
-  query FilterRestaurants(
-    $search: String
-    $cuisine: String
-    $vegOnly: Boolean
-    $rating: Float
-  ) {
-    FilterRestaurants(
-      search: $search
-      cuisine: $cuisine
-      vegOnly: $vegOnly
-      rating: $rating
-    ) {
+  query FilterRestaurants($input: FilterRestaurantsInput!) {
+    FilterRestaurants(input: $input) {
       id
       restaurantName
       cuisine

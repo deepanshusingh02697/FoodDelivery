@@ -1,33 +1,39 @@
-import { Arg, Ctx, ID, Int, Mutation, Resolver } from "type-graphql";
-import { OrderResponse } from "../../Types/OrderResponse.js";
-import { Context, isAuth, isOwner } from "../../../graphql/context.js";
+import { Arg, Ctx, ID, Int, Mutation, Query, Resolver } from "type-graphql";
+import { OrderResponse } from "../types/OrderResponse.js";
+import { Context, isAuth, isOwner } from "../middleware/context.js";
 import {
   addressRepository,
   cartRepository,
   orderRepository,
+  restaurantRepository,
   userRepository,
-} from "../../repositories/repository.js";
+} from "../repositories/repository.js";
 import crypto from "crypto";
-import { AppDataSource } from "../../config/data-source.js";
-import { MenuItem } from "../../entity/Menuitem.entity.js";
-import { Order, OrderStatus } from "../../entity/Order.entity.js";
-import { OrderItem } from "../../entity/Orderitem.entity.js";
-import { Cart } from "../../entity/Cart.entity.js";
-import { CartItem } from "../../entity/Cartitem.entity.js";
+import { AppDataSource } from "../config/data-source.js";
+import { MenuItem } from "../entity/menuitem.entity.js";
+import { Order, OrderStatus } from "../entity/order.entity.js";
+import { OrderItem } from "../entity/orderitem.entity.js";
+import { Cart } from "../entity/cart.entity.js";
+import { CartItem } from "../entity/cartitem.entity.js";
+import {
+  AssignDeliveryPartnerInput,
+  PlaceOrderInput,
+  UpdateOrderStatusInput,
+  VerifyPaymentInput,
+} from "../Input/order.input.js";
 
 @Resolver()
 export class OrderResolver {
   @Mutation(() => OrderResponse)
   async PlaceOrder(
-    @Arg("cartId", () => ID) cartId: string,
-    @Arg("addressId", () => ID) addressId: string,
+    @Arg("input", () => PlaceOrderInput) input: PlaceOrderInput,
     @Ctx() ctx: Context,
   ) {
     isAuth(ctx);
 
     const cart = await cartRepository.findOne({
       where: {
-        id: Number(cartId),
+        id: Number(input.cartId),
       },
       relations: {
         items: {
@@ -50,7 +56,7 @@ export class OrderResolver {
 
     const address = await addressRepository.findOne({
       where: {
-        id: Number(addressId),
+        id: Number(input.addressId),
       },
     });
 
@@ -165,13 +171,12 @@ export class OrderResolver {
 
   @Mutation(() => OrderResponse)
   async UpdateOrderStatus(
-    @Arg("orderId", () => ID) orderId: string,
-    @Arg("status", () => OrderStatus) status: OrderStatus,
+    @Arg("input", () => UpdateOrderStatusInput) input: UpdateOrderStatusInput,
     @Ctx() ctx: Context,
   ) {
     const order = await orderRepository.findOne({
       where: {
-        id: Number(orderId),
+        id: Number(input.orderId),
       },
       relations: {
         restaurant: true,
@@ -221,7 +226,7 @@ export class OrderResolver {
         throw new Error("Unauthorized");
     }
 
-    order.status = status;
+    order.status = input.status;
 
     const updated = await orderRepository.save(order);
 
@@ -234,22 +239,19 @@ export class OrderResolver {
 
   @Mutation(() => OrderResponse)
   async VerifyPayment(
-    @Arg("orderId", () => ID) orderId: string,
-    @Arg("razorpayOrderId", () => String) razorpayOrderId: string,
-    @Arg("razorpayPaymentId", () => String) razorpayPaymentId: string,
-    @Arg("razorpaySignature", () => String) razorpaySignature: string,
+    @Arg("input", () => VerifyPaymentInput) input: VerifyPaymentInput,
     @Ctx() ctx: Context,
   ) {
     isAuth(ctx);
 
-    const body = `${razorpayOrderId}|${razorpayPaymentId}`;
+    const body = `${input.razorpayOrderId}|${input.razorpayPaymentId}`;
 
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== razorpaySignature) {
+    if (expectedSignature !== input.razorpaySignature) {
       throw new Error("Payment verification failed");
     }
 
@@ -267,7 +269,7 @@ export class OrderResolver {
 
       const order = await orderRepository.findOne({
         where: {
-          id: Number(orderId),
+          id: Number(input.orderId),
         },
       });
 
@@ -309,13 +311,13 @@ export class OrderResolver {
   }
   @Mutation(() => OrderResponse)
   async AssignDeliveryPartner(
-    @Arg("orderId", () => ID) orderId: string,
-    @Arg("deliveryPartnerId", () => Int) deliveryPartnerId: number,
+    @Arg("input", () => AssignDeliveryPartnerInput)
+    input: AssignDeliveryPartnerInput,
     @Ctx() ctx: Context,
   ) {
     isOwner(ctx);
     const order = await orderRepository.findOne({
-      where: { id: Number(orderId) },
+      where: { id: Number(input.orderId) },
       relations: { restaurant: true },
     });
     if (!order) throw new Error("NOT_FOUND");
@@ -328,7 +330,7 @@ export class OrderResolver {
     }
 
     const partner = await userRepository.findOne({
-      where: { id: Number(deliveryPartnerId) },
+      where: { id: Number(input.deliveryPartnerId) },
     });
 
     if (!partner || partner.role !== "DELIVERY_PARTNER") {
@@ -345,5 +347,50 @@ export class OrderResolver {
       msg: "Delivery partner assigned",
       order: updated,
     };
+  }
+
+  @Query(() => [Order])
+  async MyOrders(@Ctx() ctx: Context) {
+    isAuth(ctx);
+
+    return await orderRepository.find({
+      where: {
+        userId: ctx.userId!,
+      },
+      relations: {
+        items: true,
+        restaurant: true,
+      },
+      order: {
+        placedAt: "DESC",
+      },
+    });
+  }
+  @Query(() => [Order])
+  async RestaurantOrders(@Ctx() ctx: Context) {
+    isOwner(ctx);
+
+    const restaurant = await restaurantRepository.findOne({
+      where: {
+        ownerId: ctx.userId!,
+      },
+    });
+
+    if (!restaurant) {
+      throw new Error("No restaurant found for this owner");
+    }
+
+    return await orderRepository.find({
+      where: {
+        restaurantId: restaurant.id,
+      },
+      relations: {
+        items: true,
+        user: true,
+      },
+      order: {
+        placedAt: "DESC",
+      },
+    });
   }
 }

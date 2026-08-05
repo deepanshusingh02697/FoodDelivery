@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { accessCookieOptions, setToken } from "../../lib/jwtCookie.js";
-import { Context, isAdmin, isAuth, isOwner } from "../context.js";
+import { accessCookieOptions, setToken } from "../../utils/jwt.cookie.js";
+import { Context, isAdmin, isAuth, isOwner } from "../../src/middleware/context.js";
 import {
   checkAddress,
   checkCategory,
@@ -17,8 +17,8 @@ import {
   checkPhone,
   checkPrice,
   checkRestaurantName,
-} from "../../Validation/validate.js";
-import { razorpay } from "../../Razorpay/Razorpay.js";
+} from "../../validation/validate.js";
+import { razorpay } from "../../src/razorpay/Razorpay.js";
 import crypto from "crypto";
 import { GraphQLError } from "graphql";
 import { authService } from "../../src/services/auth.service.js";
@@ -36,14 +36,14 @@ import {
 import {
   Restaurant,
   RestaurantStatus,
-} from "../../src/entity/Restaurant.entity.js";
+} from "../../src/entity/restaurant.entity.js";
 import { AppDataSource } from "../../src/config/data-source.js";
-import { Role, User } from "../../src/entity/User.entity.js";
-import { Order, OrderStatus } from "../../src/entity/Order.entity.js";
-import { MenuItem } from "../../src/entity/Menuitem.entity.js";
-import { OrderItem } from "../../src/entity/Orderitem.entity.js";
-import { Cart } from "../../src/entity/Cart.entity.js";
-import { CartItem } from "../../src/entity/Cartitem.entity.js";
+import { Role, User } from "../../src/entity/user.entity.js";
+import { Order, OrderStatus } from "../../src/entity/order.entity.js";
+import { MenuItem } from "../../src/entity/menuitem.entity.js";
+import { OrderItem } from "../../src/entity/orderitem.entity.js";
+import { Cart } from "../../src/entity/cart.entity.js";
+import { CartItem } from "../../src/entity/cartitem.entity.js";
 
 export const resolvers = {
   Query: {

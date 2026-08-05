@@ -4,32 +4,24 @@ import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@as-integrations/express5";
 import express from "express";
 import { createServer } from "node:http";
-// import { resolvers } from "./graphql/Resolvers/resolver.js";
-// import { typeDefs } from "./graphql/Typedefs/typeDefs.js";
-import { Context, createCheckAuth } from "./graphql/context.js";
+import { Context, createCheckAuth } from "./src/middleware/context.js";
 import cookieParser from "cookie-parser";
 import uploadRouter from "./Routes/uploadRoute.js";
 import cors from "cors";
 import { AppDataSource } from "./src/config/data-source.js";
 
 import { buildSchema } from "type-graphql";
-import { HelloResolver } from "./src/graphql/Mutations/HelloResolver.js";
-import { AuthResolver } from "./src/graphql/Mutations/AuthResolver.js";
-import { RestaurantResolver } from "./src/graphql/Mutations/RestaurantResolver.js";
-import { CartResolver } from "./src/graphql/Mutations/CartResolver.js";
-import { MenuItemResolver } from "./src/graphql/Mutations/MenuItemResolver.js";
-import { OrderResolver } from "./src/graphql/Mutations/OrderResolver.js";
-import { ReviewResolver } from "./src/graphql/Mutations/ReviewResolver.js";
-import { RazorpayResolver } from "./src/graphql/Mutations/RazorpayResolver.js";
-import { AddressResolver } from "./src/graphql/Mutations/AddressResolver.js";
-import { AuthQuery } from "./src/graphql/Querys/AuthQuery.js";
-import { RestaurantQuery } from "./src/graphql/Querys/RestaurantQuery.js";
-import { MenuItemQuery } from "./src/graphql/Querys/MenuItemQuery.js";
-import { OrderQuery } from "./src/graphql/Querys/OrderQuery.js";
-import { AdminDashboardQuery } from "./src/graphql/Querys/AdminDashboardQuery.js";
-import { AddressQuery } from "./src/graphql/Querys/AddressQuery.js";
-import { CartQuery } from "./src/graphql/Querys/CartQuery.js";
-import { ReviewQuery } from "./src/graphql/Querys/ReviewQuery.js";
+import { AuthResolver } from "./src/resolver/auth.resolver.js";
+import { RestaurantResolver } from "./src/resolver/restaurant.resolver.js";
+import { CartResolver } from "./src/resolver/cart.resolver.js";
+import { MenuItemResolver } from "./src/resolver/menuitems.resolver.js";
+import { OrderResolver } from "./src/resolver/order.resolver.js";
+import { ReviewResolver } from "./src/resolver/review.resolver.js";
+
+import { AddressResolver } from "./src/resolver/address.resolver.js";
+import { AdminDashboardQuery } from "./src/resolver/admin.resolver.js";
+import { RazorpayResolver } from "./src/resolver/razorpay.resolver.js";
+
 
 const app = express();
 app.use(cookieParser());
@@ -63,15 +55,6 @@ async function startServer() {
 
     const schema = await buildSchema({
       resolvers: [
-        AuthQuery,
-        RestaurantQuery,
-        OrderQuery,
-        CartQuery,
-        MenuItemQuery,
-        AdminDashboardQuery,
-        AddressQuery,
-        ReviewQuery,
-        HelloResolver,
         AuthResolver,
         AddressResolver,
         RestaurantResolver,
@@ -80,6 +63,7 @@ async function startServer() {
         OrderResolver,
         ReviewResolver,
         RazorpayResolver,
+        AdminDashboardQuery
       ],
     });
     const server = new ApolloServer<Context>({ schema });

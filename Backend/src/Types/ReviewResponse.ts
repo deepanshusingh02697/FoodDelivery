@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Review } from "../entity/Review.entity.js";
+import { Review } from "../entity/review.entity.js";
 
 @ObjectType()
 export class ReviewResponse {

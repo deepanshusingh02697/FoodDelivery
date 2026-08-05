@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { verifyAccessToken } from "../lib/jwtCookie.js";
+import { verifyAccessToken } from "../../utils/jwt.cookie.js";
 import { GraphQLError } from "graphql";
 
 export type Context = {

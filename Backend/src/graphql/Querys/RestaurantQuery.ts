@@ -2,8 +2,8 @@ import { Arg, Ctx, Float, Int, Query, Resolver } from "type-graphql";
 import {
   Restaurant,
   RestaurantStatus,
-} from "../../entity/Restaurant.entity.js";
-import { Context, isAdmin, isAuth } from "../../../graphql/context.js";
+} from "../../entity/restaurant.entity.js";
+import { Context, isAdmin, isAuth } from "../../middleware/context.js";
 import { restaurantRepository } from "../../repositories/repository.js";
 
 @Resolver()

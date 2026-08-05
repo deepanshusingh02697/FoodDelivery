@@ -65,7 +65,7 @@ export default function Signup() {
   const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCustomerInput((prev) => ({ ...prev, [name]: value }));
-    setError((prev) => ({...prev,[name]: ""}));
+    setError((prev) => ({ ...prev, [name]: "" }));
   };
   const handleRestaurantChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -77,9 +77,9 @@ export default function Signup() {
       [name]: value,
     }));
     setRestoError((prev) => ({
-    ...prev,
-    [name]: "",
-  }));
+      ...prev,
+      [name]: "",
+    }));
   };
 
   const validateCustomer = () => {
@@ -150,10 +150,12 @@ export default function Signup() {
     try {
       const response = await SignUpUser({
         variables: {
-          firstname: customerInput.firstname,
-          lastname: customerInput.lastname,
-          email: customerInput.email,
-          password: customerInput.password,
+          input: {
+            firstname: customerInput.firstname,
+            lastname: customerInput.lastname,
+            email: customerInput.email,
+            password: customerInput.password,
+          },
         },
       });
       console.log(response);
@@ -363,16 +365,18 @@ export default function Signup() {
     try {
       const response = await RegisterResturant({
         variables: {
-          firstname: restaurantInput.firstname,
-          lastname: restaurantInput.lastname,
-          email: restaurantInput.email,
-          phone: restaurantInput.phone,
-          password: restaurantInput.password,
-          restaurantName: restaurantInput.restaurantName,
-          cuisine: restaurantInput.cuisine,
-          address: restaurantInput.address,
-          fssaiNumber: restaurantInput.fssaiNumber,
-          gstNumber: restaurantInput.gstNumber,
+          input: {
+            firstname: restaurantInput.firstname,
+            lastname: restaurantInput.lastname,
+            email: restaurantInput.email,
+            phone: restaurantInput.phone,
+            password: restaurantInput.password,
+            restaurantName: restaurantInput.restaurantName,
+            cuisine: restaurantInput.cuisine,
+            address: restaurantInput.address,
+            fssaiNumber: restaurantInput.fssaiNumber,
+            gstNumber: restaurantInput.gstNumber,
+          },
         },
       });
 

@@ -1,14 +1,14 @@
 import { AppDataSource } from "../config/data-source.js";
-import { Address } from "../entity/Address.entity.js";
-import { Cart } from "../entity/Cart.entity.js";
-import { CartItem } from "../entity/Cartitem.entity.js";
-import { DeliveryTracking } from "../entity/Deliverytracking.entity.js";
-import { MenuItem } from "../entity/Menuitem.entity.js";
-import { Order } from "../entity/Order.entity.js";
-import { OrderItem } from "../entity/Orderitem.entity.js";
-import { Restaurant } from "../entity/Restaurant.entity.js";
-import { Review } from "../entity/Review.entity.js";
-import { User } from "../entity/User.entity.js";
+import { Address } from "../entity/address.entity.js";
+import { Cart } from "../entity/cart.entity.js";
+import { CartItem } from "../entity/cartitem.entity.js";
+import { DeliveryTracking } from "../entity/deliverytracking.entity.js";
+import { MenuItem } from "../entity/menuitem.entity.js";
+import { Order } from "../entity/order.entity.js";
+import { OrderItem } from "../entity/orderitem.entity.js";
+import { Restaurant } from "../entity/restaurant.entity.js";
+import { Review } from "../entity/review.entity.js";
+import { User } from "../entity/user.entity.js";
 
 export const userRepository=AppDataSource.getRepository(User)
 export const addressRepository = AppDataSource.getRepository(Address);

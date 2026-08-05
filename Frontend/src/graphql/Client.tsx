@@ -482,6 +482,20 @@ export interface SubmitReview_Mutation_Interface {
     review: Review_Interface | null;
   };
 }
+export interface SubmitReview_Vars {
+  input: {
+    restaurantId: string;
+    rating: number;
+    comment: string | null;
+  };
+}
+export interface UpdateReview_Vars {
+  input: {
+    reviewId: string;
+    rating?: number;
+    comment?: string | null;
+  };
+}
 export interface UpdateReview_Mutation_Interface {
   UpdateReview: {
     success: boolean;
@@ -543,17 +557,18 @@ export interface FilterRestaurants_Query_Interface {
     cuisine: string;
     address: string;
     status: string;
-    reviews: { id: string; rating:number }[];
+    reviews: { id: string; rating: number }[];
   }[];
 }
 
 export interface FilterRestaurants_Vars {
-  search?: string;
-  cuisine?: string;
-  vegOnly?: boolean;
-  rating?: number;
+  input: {
+    search?: string;
+    cuisine?: string;
+    vegOnly?: boolean;
+    rating?: number;
+  };
 }
-
 
 export interface UpdateAddress_Mutation_Interface {
   UpdateAddress: {

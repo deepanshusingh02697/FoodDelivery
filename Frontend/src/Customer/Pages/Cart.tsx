@@ -132,7 +132,7 @@ export default function Cart() {
   const handleIncrease = async (menuItemId: string) => {
     try {
       const { data } = await addToCartMutation({
-        variables: { menuItemId, quantity: 1 },
+        variables: { input:{menuItemId, quantity: 1} },
       });
       if (data?.AddToCart?.success) {
         dispatch(setCart(data.AddToCart.cart));
@@ -215,7 +215,12 @@ export default function Cart() {
     try {
       if (editingAddressId) {
         const { data } = await updateAddressMutation({
-          variables: { addressId: editingAddressId, ...addressForm },
+          variables: {
+            input: {
+              addressId: editingAddressId,
+              ...addressForm,
+            },
+          },
         });
 
         if (data?.UpdateAddress?.success) {
@@ -226,7 +231,9 @@ export default function Cart() {
           toast.error(data?.UpdateAddress?.msg ?? "Couldn't update address");
         }
       } else {
-        const { data } = await addAddressMutation({ variables: addressForm });
+        const { data } = await addAddressMutation({
+          variables: { input: { addressForm } },
+        });
 
         if (data?.AddAddress?.success) {
           toast.success("Address saved");
@@ -292,7 +299,7 @@ export default function Cart() {
 
     try {
       const { data: placeData } = await placeOrderMutation({
-        variables: { cartId, addressId: existAdd },
+        variables: { input:{cartId, addressId: existAdd} },
       });
 
       if (!placeData?.PlaceOrder?.success) {
@@ -337,10 +344,10 @@ export default function Cart() {
           try {
             const { data: verifyData } = await verifyPaymentMutation({
               variables: {
-                orderId,
+                input:{orderId,
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
+                razorpaySignature: response.razorpay_signature,}
               },
             });
 

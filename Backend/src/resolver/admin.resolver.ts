@@ -1,15 +1,15 @@
-import { Arg, Ctx, Float, Int, ObjectType, Field, Query, Resolver } from "type-graphql";
-import { Context, isAdmin } from "../../../graphql/context.js";
+/* import { Arg, Ctx, Float, Int, ObjectType, Field, Query, Resolver } from "type-graphql";
 import {
   orderRepository,
   restaurantRepository,
   userRepository,
-} from "../../repositories/repository.js";
+} from "../repositories/repository.js";
 import {
   RestaurantStatus,
-} from "../../entity/Restaurant.entity.js";
-import { OrderStatus } from "../../entity/Order.entity.js";
-import { Role } from "../../entity/User.entity.js";
+} from "../entity/restaurant.entity.js";
+import { OrderStatus } from "../entity/order.entity.js";
+import { Role } from "../entity/user.entity.js";
+import { Context, isAdmin } from "../middleware/context.js";
 
 @ObjectType()
 class StatusCount {
@@ -44,7 +44,7 @@ class AdminDashboardPayload {
 @Resolver()
 export class AdminDashboardQuery {
   @Query(() => AdminDashboardPayload)
-  async GetAdminDashboard(
+  async GetAdminDahsboard(
     @Ctx() ctx: Context,
   ): Promise<AdminDashboardPayload> {
     isAdmin(ctx);
@@ -99,5 +99,56 @@ export class AdminDashboardQuery {
       pendingRestaurants,
       ordersByStatus: orderStatusArray,
     };
+  }
+} */
+import {
+  Ctx,
+  Int,
+  ObjectType,
+  Field,
+  Float,
+  Query,
+  Resolver,
+} from "type-graphql";
+import { Context, isAdmin } from "../middleware/context.js";
+import { adminService } from "../services/admin.service.js";
+
+@ObjectType()
+class StatusCount {
+  @Field(() => String)
+  status: string;
+
+  @Field(() => Int)
+  count: number;
+}
+
+@ObjectType()
+class AdminDashboardPayload {
+  @Field(() => Float)
+  totalRevenue: number;
+
+  @Field(() => Int)
+  totalOrders: number;
+
+  @Field(() => Int)
+  totalRestaurants: number;
+
+  @Field(() => Int)
+  totalCustomers: number;
+
+  @Field(() => Int)
+  pendingRestaurants: number;
+
+  @Field(() => [StatusCount])
+  ordersByStatus: StatusCount[];
+}
+
+@Resolver()
+export class AdminDashboardQuery {
+  @Query(() => AdminDashboardPayload)
+  async GetAdminDahsboard(@Ctx() ctx: Context): Promise<AdminDashboardPayload> {
+    isAdmin(ctx);
+
+    return await adminService.getDashboard();
   }
 }

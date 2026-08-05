@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { userRepository } from "../repositories/repository.js";
-import { Role } from "../entity/User.entity.js";
+import { Role } from "../entity/user.entity.js";
 
 export class AuthService {
   async signUp(data: {

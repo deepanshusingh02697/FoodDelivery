@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Cart } from "../entity/Cart.entity.js";
+import { Cart } from "../entity/cart.entity.js";
 
 @ObjectType()
 export class CartResponse{

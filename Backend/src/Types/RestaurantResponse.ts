@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Restaurant } from "../entity/Restaurant.entity.js";
+import { Restaurant } from "../entity/restaurant.entity.js";
 
 @ObjectType()
 export class RestaurantResponse{

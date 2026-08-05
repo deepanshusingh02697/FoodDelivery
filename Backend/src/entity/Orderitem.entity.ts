@@ -5,8 +5,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Order } from "./Order.entity.js";
-import { MenuItem } from "./Menuitem.entity.js";
+import { Order } from "./order.entity.js";
+import { MenuItem } from "./menuitem.entity.js";
 import {
   Field,
   Float,

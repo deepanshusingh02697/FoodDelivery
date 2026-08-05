@@ -18,11 +18,11 @@ import {
   registerEnumType,
 } from "type-graphql";
 
-import { User } from "./User.entity.js";
-import { MenuItem } from "./Menuitem.entity.js";
-import { Cart } from "./Cart.entity.js";
-import { Order } from "./Order.entity.js";
-import { Review } from "./Review.entity.js";
+import { User } from "./user.entity.js";
+import { MenuItem } from "./menuitem.entity.js";
+import { Cart } from "./cart.entity.js";
+import { Order } from "./order.entity.js";
+import { Review } from "./review.entity.js";
 
 export enum RestaurantStatus {
   PENDING = "PENDING",

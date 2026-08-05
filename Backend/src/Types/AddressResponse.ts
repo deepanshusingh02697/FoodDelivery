@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Address } from "../entity/Address.entity.js";
+import { Address } from "../entity/address.entity.js";
 
 @ObjectType()
 export class AddressResponse{

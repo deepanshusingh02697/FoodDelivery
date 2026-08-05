@@ -1,6 +1,6 @@
 import { Ctx, Query, Resolver } from "type-graphql";
-import { Role, User } from "../../entity/User.entity.js";
-import { Context, isAuth, isOwner } from "../../../graphql/context.js";
+import { Role, User } from "../../entity/user.entity.js";
+import { Context, isAuth, isOwner } from "../../middleware/context.js";
 import { userRepository } from "../../repositories/repository.js";
 
 @Resolver()

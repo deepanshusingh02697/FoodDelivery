@@ -8,11 +8,11 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { User } from "./User.entity.js";
-import { Restaurant } from "./Restaurant.entity.js";
-import { Address } from "./Address.entity.js";
-import { OrderItem } from "./Orderitem.entity.js";
-import { DeliveryTracking } from "./Deliverytracking.entity.js";
+import { User } from "./user.entity.js";
+import { Restaurant } from "./restaurant.entity.js";
+import { Address } from "./address.entity.js";
+import { OrderItem } from "./orderitem.entity.js";
+import { DeliveryTracking } from "./deliverytracking.entity.js";
 import { Field, Float, GraphQLISODateTime, ID, Int, ObjectType, registerEnumType } from "type-graphql";
 
 export enum OrderStatus {

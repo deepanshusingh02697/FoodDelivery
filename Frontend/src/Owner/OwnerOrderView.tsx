@@ -96,7 +96,7 @@ export default function OwnerOrderView() {
     setAssigningId(orderId);
     try {
       const { data } = await assignDeliveryPartner({
-        variables: { orderId, deliveryPartnerId },
+        variables: { input:{orderId, deliveryPartnerId} },
       });
       if (data?.AssignDeliveryPartner?.success) {
         toast.success(data.AssignDeliveryPartner.msg);

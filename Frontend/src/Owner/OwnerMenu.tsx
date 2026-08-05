@@ -38,7 +38,7 @@ export default function OwnerMenu() {
 
   const handleToggle = async (menuItemId: string) => {
     try {
-      const { data } = await toggleAvailability({ variables: { menuItemId } });
+      const { data } = await toggleAvailability({ variables: {input:{ menuItemId }} });
       if (data?.ToggleMenuItemAvailability?.success) {
         refetch();
       }
@@ -56,7 +56,7 @@ export default function OwnerMenu() {
 
     try {
       const { data } = await updateStock({
-        variables: { menuItemId, stockQuantity: Number(value) },
+        variables: {input:{ menuItemId, stockQuantity: Number(value) }},
       });
       if (data?.UpdateStock?.success) {
         toast.success("Stock updated");
@@ -78,7 +78,7 @@ export default function OwnerMenu() {
 
     setDeletingId(menuItemId);
     try {
-      const { data } = await deleteMenuItem({ variables: { menuItemId } });
+      const { data } = await deleteMenuItem({ variables: {input:{ menuItemId }} });
       if (data?.DeleteMenuItem?.success) {
         toast.success(data.DeleteMenuItem.msg);
         refetch();

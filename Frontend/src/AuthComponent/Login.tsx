@@ -97,8 +97,10 @@ export default function Login() {
     if (!validateLogin()) return;
     try {
       const variables = {
-        email: loginInput.email,
-        password: loginInput.password,
+        input: {
+          email: loginInput.email,
+          password: loginInput.password,
+        },
       };
 
       if (role === "CUSTOMER") {

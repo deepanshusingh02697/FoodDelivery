@@ -15,7 +15,7 @@ import {
  ObjectType,
 } from "type-graphql";
 
-import { Order } from "./Order.entity.js";
+import { Order } from "./order.entity.js";
 
 @ObjectType()
 @Entity("delivery_tracking")

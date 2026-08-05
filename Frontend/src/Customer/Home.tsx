@@ -41,10 +41,12 @@ export default function Home() {
   const navigate = useNavigate();
 
   const variables: FilterRestaurants_Vars = {
-    search: searchText.trim() || undefined,
-    cuisine: selectedCuisine !== "All Cuisines" ? selectedCuisine : undefined,
-    vegOnly: activeFilter === "Pure Veg" ? true : undefined,
-    rating: selectedRating,
+    input: {
+      search: searchText.trim() || undefined,
+      cuisine: selectedCuisine !== "All Cuisines" ? selectedCuisine : undefined,
+      vegOnly: activeFilter === "Pure Veg" ? true : undefined,
+      rating: selectedRating,
+    },
   };
 
   const { data, loading, error } = useQuery<FilterRestaurants_Query_Interface>(
@@ -54,10 +56,8 @@ export default function Home() {
 
   const restaurants = data?.FilterRestaurants ?? [];
 
-  if(loading){
-    return(
-      <CustomerHomeLoad/>
-    )
+  if (loading) {
+    return <CustomerHomeLoad />;
   }
   return (
     <div>

@@ -1,48 +1,16 @@
 import { gql } from "@apollo/client";
 
 export const signUpUser_Mutation = gql`
-  mutation Mutation(
-    $firstname: String!
-    $lastname: String!
-    $email: String!
-    $password: String!
-  ) {
-    SignUp(
-      firstname: $firstname
-      lastname: $lastname
-      email: $email
-      password: $password
-    ) {
+  mutation SignUp($input: SignUpInput!) {
+    SignUp(input:$input) {
       success
       msg
     }
   }
 `;
 export const RegisterRestaurant_Mutation = gql`
-  mutation Mutation(
-    $firstname: String!
-    $lastname: String!
-    $email: String!
-    $password: String!
-    $phone: String!
-    $restaurantName: String!
-    $cuisine: String!
-    $address: String!
-    $fssaiNumber: String
-    $gstNumber: String
-  ) {
-    RegisterRestaurantOwner(
-      firstname: $firstname
-      lastname: $lastname
-      email: $email
-      password: $password
-      phone: $phone
-      restaurantName: $restaurantName
-      cuisine: $cuisine
-      address: $address
-      fssaiNumber: $fssaiNumber
-      gstNumber: $gstNumber
-    ) {
+mutation Mutation($input: RegisterRestaurantOwnerInput!) {
+  RegisterRestaurantOwner(input: $input) {
       success
       msg
       restaurant {
@@ -64,8 +32,8 @@ export const RegisterRestaurant_Mutation = gql`
   }
 `;
 export const logInUser_Mutation = gql`
-  mutation LogIn($email: String!, $password: String!) {
-    LogIn(email: $email, password: $password) {
+  mutation Mutation($input: LoginInput!) {
+  LogIn(input: $input) {
       success
       msg
       user {
