@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
 import { verifyAccessToken } from "../../utils/jwt.cookie.js";
 import { GraphQLError } from "graphql";
+import { createLoader } from "../loaders/loaders.js";
 
+export type Loaders=ReturnType<typeof createLoader>
 export type Context = {
   userId: number | null;
   req: Request;
   res: Response;
   role: "CUSTOMER" | "OWNER" | "ADMIN" | "DELIVERY_PARTNER" | null;
+  loaders:Loaders
 };
 
 export const createCheckAuth = async ({
@@ -30,7 +33,7 @@ export const createCheckAuth = async ({
       userId = null;
     }
   }
-  return { req, res, userId, role };
+  return { req, res, userId, role, loaders:createLoader() };
 };
 
 export const isAuth = (ctx: Context) => {

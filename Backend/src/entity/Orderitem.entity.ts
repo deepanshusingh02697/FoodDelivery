@@ -5,7 +5,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Order } from "./order.entity.js";
 import { MenuItem } from "./menuitem.entity.js";
 import {
   Field,
@@ -14,6 +13,7 @@ import {
   Int,
   ObjectType,
 } from "type-graphql";
+import { Order } from "./order.entity.js";
 
 @ObjectType()
 @Entity("orderitems")

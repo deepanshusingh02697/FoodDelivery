@@ -74,11 +74,11 @@ export class MenuItem {
   @JoinColumn({ name: "restaurantId" })
   restaurant: Restaurant;
 
-  // @Field(() => [CartItem])
+  @Field(() => [CartItem])
   @OneToMany(() => CartItem, (cartItem) => cartItem.menuItem)
   cartItems: CartItem[];
 
-  // @Field(() => [OrderItem])
+  @Field(() => [OrderItem])
   @OneToMany(() => OrderItem, (orderItem) => orderItem.menuItem)
   orderItems: OrderItem[];
 

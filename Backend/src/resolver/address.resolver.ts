@@ -1,13 +1,14 @@
-import { Arg, Ctx, ID, Mutation, Query, Resolver } from "type-graphql";
-import { AddressResponse } from "../types/AddressResponse.js";
+import { Arg, Ctx, FieldResolver, ID, Mutation, Query, Resolver, Root } from "type-graphql";
 import { Context, isAuth } from "../middleware/context.js";
 import { AddAddressInput, UpdateAddressInput } from "../Input/address.input.js";
 import { Address } from "../entity/address.entity.js";
 import { addressService } from "../services/address.service.js";
+import { AddressResponse } from "../Types/AddressResponse.js";
+import { User } from "../entity/user.entity.js";
+import { Order } from "../entity/order.entity.js";
 
-@Resolver()
+@Resolver(()=>Address)
 export class AddressResolver {
-  @Mutation(() => AddressResponse)
   @Mutation(() => AddressResponse)
   async AddAddress(
     @Arg("input", () => AddAddressInput) input: AddAddressInput,
@@ -61,5 +62,24 @@ export class AddressResolver {
     isAuth(ctx);
 
     return addressService.getMyAddresses(ctx);
+  }
+
+  @FieldResolver(() => [Order])
+  async orders(
+    @Root() address: Address,
+    @Ctx() ctx: Context
+  ) {
+    console.log("Address orders resolver:", address.id);
+
+    return ctx.loaders.ordersByAddressLoader.load(address.id);
+  }
+
+  @FieldResolver(() => User)
+  async user(
+    @Root() address: Address,
+    @Ctx() ctx: Context
+  ) {
+    console.log("Order resolver called", address.id);
+    return ctx.loaders.userLoader.load(address.userId);
   }
 }

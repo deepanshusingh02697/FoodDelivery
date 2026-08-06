@@ -21,6 +21,7 @@ import { ReviewResolver } from "./src/resolver/review.resolver.js";
 import { AddressResolver } from "./src/resolver/address.resolver.js";
 import { AdminDashboardQuery } from "./src/resolver/admin.resolver.js";
 import { RazorpayResolver } from "./src/resolver/razorpay.resolver.js";
+import { CartItemResolver } from "./src/resolver/cartitem.resolver.js";
 
 
 const app = express();
@@ -59,6 +60,7 @@ async function startServer() {
         AddressResolver,
         RestaurantResolver,
         CartResolver,
+        CartItemResolver,
         MenuItemResolver,
         OrderResolver,
         ReviewResolver,

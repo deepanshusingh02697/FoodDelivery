@@ -59,7 +59,8 @@ export class CartService {
       }
 
       cartItem.quantity = newQuantity;
-      cartItem = await cartItemRepository.save(cartItem);
+
+      await cartItemRepository.save(cartItem);
     } else {
       cartItem = cartItemRepository.create({
         cartId: cart.id,
@@ -68,21 +69,14 @@ export class CartService {
         priceAtAdd: menuItem.price,
       });
 
-      cartItem = await cartItemRepository.save(cartItem);
+      await cartItemRepository.save(cartItem);
     }
 
-    const fullCart = await cartRepository.findOne({
+    return await cartRepository.findOne({
       where: {
         id: cart.id,
       },
-      relations: {
-        items: {
-          menuItem: true,
-        },
-      },
     });
-
-    return fullCart;
   }
 
   async DecreaseCartItem(cartItemId: string, userId: number) {
@@ -90,16 +84,19 @@ export class CartService {
       where: {
         id: Number(cartItemId),
       },
-      relations: {
-        cart: true,
-      },
     });
 
     if (!cartItem) {
       throw new Error("NOT_FOUND");
     }
 
-    if (cartItem.cart.userId !== userId) {
+    const cart = await cartRepository.findOne({
+      where: {
+        id: cartItem.cartId,
+      },
+    });
+
+    if (!cart || cart.userId !== userId) {
       throw new Error("Not your cart item");
     }
 
@@ -107,17 +104,13 @@ export class CartService {
       await cartItemRepository.remove(cartItem);
     } else {
       cartItem.quantity--;
+
       await cartItemRepository.save(cartItem);
     }
 
     return await cartRepository.findOne({
       where: {
         id: cartItem.cartId,
-      },
-      relations: {
-        items: {
-          menuItem: true,
-        },
       },
     });
   }
@@ -127,16 +120,19 @@ export class CartService {
       where: {
         id: Number(cartItemId),
       },
-      relations: {
-        cart: true,
-      },
     });
 
     if (!cartItem) {
       throw new Error("NOT_FOUND");
     }
 
-    if (cartItem.cart.userId !== userId) {
+    const cart = await cartRepository.findOne({
+      where: {
+        id: cartItem.cartId,
+      },
+    });
+
+    if (!cart || cart.userId !== userId) {
       throw new Error("Not your cart item");
     }
 
@@ -145,11 +141,6 @@ export class CartService {
     return await cartRepository.findOne({
       where: {
         id: cartItem.cartId,
-      },
-      relations: {
-        items: {
-          menuItem: true,
-        },
       },
     });
   }
@@ -184,12 +175,6 @@ export class CartService {
       where: {
         userId,
         restaurantId: Number(restaurantId),
-      },
-      relations: {
-        items: {
-          menuItem: true,
-        },
-        restaurant: true,
       },
     });
   }

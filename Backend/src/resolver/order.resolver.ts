@@ -1,5 +1,4 @@
 import { Arg, Ctx, ID, Int, Mutation, Query, Resolver } from "type-graphql";
-import { OrderResponse } from "../types/OrderResponse.js";
 import { Context, isAuth, isOwner } from "../middleware/context.js";
 import {
   addressRepository,
@@ -21,6 +20,7 @@ import {
   UpdateOrderStatusInput,
   VerifyPaymentInput,
 } from "../Input/order.input.js";
+import { OrderResponse } from "../Types/OrderResponse.js";
 
 @Resolver()
 export class OrderResolver {

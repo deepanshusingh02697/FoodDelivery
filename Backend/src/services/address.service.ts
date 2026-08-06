@@ -75,10 +75,10 @@ export class AddressService {
       where: {
         userId: ctx.userId!,
       },
-      order: {
-        isDefault: "DESC",
-        createdAt: "DESC",
-      },
+      // order: {
+      //   isDefault: "DESC",
+      //   createdAt: "DESC",
+      // },
     });
   }
 }

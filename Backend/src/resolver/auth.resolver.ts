@@ -8,10 +8,10 @@ import {
 } from "../../validation/validate.js";
 import { Context, isAuth, isOwner } from "../middleware/context.js";
 import { accessCookieOptions, setToken } from "../../utils/jwt.cookie.js";
-import { AuthResponse } from "../types/AuthResponse.js";
 import { DeliveryPartnerSignUpInput, LoginInput, SignUpInput } from "../Input/auth.input.js";
 import { Role, User } from "../entity/user.entity.js";
 import { userRepository } from "../repositories/repository.js";
+import { AuthResponse } from "../Types/AuthResponse.js";
 
 
 @Resolver()

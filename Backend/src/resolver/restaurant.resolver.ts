@@ -1,5 +1,4 @@
 import { Arg, Ctx, ID, Int, Mutation, Query, Resolver } from "type-graphql";
-import { RestaurantResponse } from "../types/RestaurantResponse.js";
 import { Restaurant } from "../entity/restaurant.entity.js";
 import { Context } from "../middleware/context.js";
 import {
@@ -7,6 +6,7 @@ import {
   RegisterRestaurantOwnerInput,
 } from "../Input/restaurant.input.js";
 import { RestaurantService } from "../services/restaurant.service.js";
+import { RestaurantResponse } from "../Types/RestaurantResponse.js";
 
 @Resolver()
 export class RestaurantResolver {

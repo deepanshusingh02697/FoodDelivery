@@ -77,5 +77,5 @@ export class Address {
 
   @Field(() => [Order])
   @OneToMany(() => Order, (order) => order.deliveryAddress)
-  orders: Order[];
+  orders?: Order[];
 }
