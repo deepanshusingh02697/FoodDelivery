@@ -151,7 +151,7 @@ export default function Feedback({ restaurantId, onRatingChange }: Prop) {
   };
 
   return (
-    <div className="mx-auto mt-8 px-6">
+    <div className="mx-auto mt-8 px-2">
       <div className="bg-[#1d1816] rounded-2xl overflow-hidden border border-[#2a2421]">
         <div className="w-full flex items-center justify-between px-6 py-5 hover:bg-[#25201d] transition">
           <div>

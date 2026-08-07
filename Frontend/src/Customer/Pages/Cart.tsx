@@ -130,9 +130,9 @@ export default function Cart() {
   const total = subtotal + deliveryFee + taxes;
 
   const handleIncrease = async (menuItemId: string) => {
-    try {
+    try {      
       const { data } = await addToCartMutation({
-        variables: { input:{menuItemId, quantity: 1} },
+        variables: { input: { menuItemId, quantity: 1 } },
       });
       if (data?.AddToCart?.success) {
         dispatch(setCart(data.AddToCart.cart));
@@ -205,11 +205,14 @@ export default function Cart() {
     if (
       !addressLine1.trim() ||
       !city.trim() ||
-      !state.trim() ||
-      !/^\d{6}$/.test(pincode)
+      !state.trim()
     ) {
-      toast.error("Fill in a valid address (6-digit pincode required)");
+      toast.error("All fields are required");
       return;
+    }
+    if(!/^\d{6}$/.test(pincode)){
+      toast.error("Fill in a valid address (6-digit pincode required)");
+      return
     }
     setSavingAddress(true);
     try {
@@ -232,7 +235,7 @@ export default function Cart() {
         }
       } else {
         const { data } = await addAddressMutation({
-          variables: { input: { addressForm } },
+          variables: { input:addressForm},
         });
 
         if (data?.AddAddress?.success) {
@@ -296,10 +299,14 @@ export default function Cart() {
     }
 
     setPlacingOrder(true);
-
     try {
       const { data: placeData } = await placeOrderMutation({
-        variables: { input:{cartId, addressId: existAdd} },
+        variables: {
+          input: {
+            cartId,
+            addressId: existAdd,
+          },
+        },
       });
 
       if (!placeData?.PlaceOrder?.success) {
@@ -344,10 +351,12 @@ export default function Cart() {
           try {
             const { data: verifyData } = await verifyPaymentMutation({
               variables: {
-                input:{orderId,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,}
+                input: {
+                  orderId,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                },
               },
             });
 

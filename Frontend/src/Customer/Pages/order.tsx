@@ -50,7 +50,7 @@ export default function Orders() {
   const handleCancelOrder = async (orderId: string, status: "CANCELED") => {
     try {
       const { data } = await updateOrderStatus({
-        variables: { input:{orderId, status} },
+        variables: { input: { orderId, status } },
       });
       if (data?.UpdateOrderStatus?.success) {
         toast.success(data?.UpdateOrderStatus?.msg, {

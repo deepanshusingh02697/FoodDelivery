@@ -110,7 +110,7 @@ export default function RestaurantDetail() {
   const handleAdd = async (menuItemId: string) => {
     try {
       const { data } = await addToCartMutation({
-        variables: { menuItemId, quantity: 1 },
+        variables: { input:{menuItemId, quantity: 1} },
       });
       if (data?.AddToCart?.success) {
         dispatch(setCart(data?.AddToCart?.cart));
@@ -189,7 +189,7 @@ export default function RestaurantDetail() {
         onRatingChange={setAverageRating}
       />
 
-      <div className="max-w-7xl mx-auto py-8 grid lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-2 py-8 grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <input
             placeholder="Search within menu..."
@@ -198,7 +198,7 @@ export default function RestaurantDetail() {
             onChange={(e) => setSearchVal(e.target.value)}
           />
 
-          <div className="flex gap-3 overflow-auto mb-8">
+          <div className="flex gap-3 overflow-auto mb-8 mx-2">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -226,7 +226,7 @@ export default function RestaurantDetail() {
           </div>
         </div>
 
-        <div className="sticky top-24 space-y-5">
+        <div className="sticky top-24 space-y-5 sm:mx-2.5">
           <div className="bg-[#1d1816] rounded-2xl p-6">
             {cartItems.length === 0 ? (
               <>

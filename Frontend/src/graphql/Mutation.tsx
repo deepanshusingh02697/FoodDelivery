@@ -2,15 +2,15 @@ import { gql } from "@apollo/client";
 
 export const signUpUser_Mutation = gql`
   mutation SignUp($input: SignUpInput!) {
-    SignUp(input:$input) {
+    SignUp(input: $input) {
       success
       msg
     }
   }
 `;
 export const RegisterRestaurant_Mutation = gql`
-mutation Mutation($input: RegisterRestaurantOwnerInput!) {
-  RegisterRestaurantOwner(input: $input) {
+  mutation Mutation($input: RegisterRestaurantOwnerInput!) {
+    RegisterRestaurantOwner(input: $input) {
       success
       msg
       restaurant {
@@ -33,7 +33,7 @@ mutation Mutation($input: RegisterRestaurantOwnerInput!) {
 `;
 export const logInUser_Mutation = gql`
   mutation Mutation($input: LoginInput!) {
-  LogIn(input: $input) {
+    LogIn(input: $input) {
       success
       msg
       user {
@@ -115,8 +115,8 @@ export const logout_Auth_Mutation = gql`
 `;
 
 export const ADD_TO_CART_Mutation = gql`
-  mutation AddToCart($menuItemId: ID!, $quantity: Int!) {
-    AddToCart(menuItemId: $menuItemId, quantity: $quantity) {
+  mutation AddToCart($input: AddToCartInput!) {
+    AddToCart(input: $input) {
       success
       msg
       cart {
@@ -202,8 +202,8 @@ export const REMOVE_FROM_CART_Mutation = gql`
 `;
 
 export const PLACE_ORDER_Mutation = gql`
-  mutation PlaceOrder($cartId: ID!, $addressId: ID!) {
-    PlaceOrder(cartId: $cartId, addressId: $addressId) {
+  mutation PlaceOrder($input: PlaceOrderInput!) {
+    PlaceOrder(input: $input) {
       success
       msg
       order {
@@ -240,26 +240,8 @@ export const CLEAR_CART_Mutation = gql`
 `;
 
 export const CREATE_MENU_ITEM_Mutation = gql`
-  mutation CreateMenuItem(
-    $name: String!
-    $description: String
-    $price: Float!
-    $category: String!
-    $isVeg: Boolean!
-    $imageUrl: String
-    $trackStock: Boolean
-    $stockQuantity: Int
-  ) {
-    CreateMenuItem(
-      name: $name
-      description: $description
-      price: $price
-      category: $category
-      isVeg: $isVeg
-      imageUrl: $imageUrl
-      trackStock: $trackStock
-      stockQuantity: $stockQuantity
-    ) {
+  mutation CreateMenuItem($input: CreateMenuItemInput!) {
+  CreateMenuItem(input: $input) {
       success
       msg
       menuItem {
@@ -290,8 +272,8 @@ export const TOGGLE_MENU_ITEM_AVAILABILITY_Mutation = gql`
 `;
 
 export const UPDATE_STOCK_Mutation = gql`
-  mutation UpdateStock($menuItemId: ID!, $stockQuantity: Int!) {
-    UpdateStock(menuItemId: $menuItemId, stockQuantity: $stockQuantity) {
+  mutation UpdateStock($input: UpdateStockInput!) {
+  UpdateStock(input: $input) {
       success
       msg
       menuItem {
@@ -312,11 +294,8 @@ export const DELETE_MENU_ITEM_Mutation = gql`
 `;
 
 export const ASSIGN_DELIVERY_PARTNER_Mutation = gql`
-  mutation AssignDeliveryPartner($orderId: ID!, $deliveryPartnerId: ID!) {
-    AssignDeliveryPartner(
-      orderId: $orderId
-      deliveryPartnerId: $deliveryPartnerId
-    ) {
+  mutation AssignDeliveryPartner($input: AssignDeliveryPartnerInput!) {
+    AssignDeliveryPartner(input: $input) {
       success
       msg
       order {
@@ -333,8 +312,8 @@ export const ASSIGN_DELIVERY_PARTNER_Mutation = gql`
 `;
 
 export const UPDATE_ORDER_STATUS_Mutation = gql`
-  mutation UpdateOrderStatus($orderId: ID!, $status: OrderStatus!) {
-    UpdateOrderStatus(orderId: $orderId, status: $status) {
+  mutation Mutation($input: UpdateOrderStatusInput!) {
+  UpdateOrderStatus(input: $input) {
       success
       msg
       order {
@@ -360,18 +339,8 @@ export const PAY_ORDER_Mutation = gql`
 `;
 
 export const VERIFY_PAYMENT_Mutation = gql`
-  mutation VerifyPayment(
-    $orderId: ID!
-    $razorpayOrderId: String!
-    $razorpayPaymentId: String!
-    $razorpaySignature: String!
-  ) {
-    VerifyPayment(
-      orderId: $orderId
-      razorpayOrderId: $razorpayOrderId
-      razorpayPaymentId: $razorpayPaymentId
-      razorpaySignature: $razorpaySignature
-    ) {
+  mutation VerifyPayment($input: VerifyPaymentInput!) {
+    VerifyPayment(input: $input) {
       success
       msg
       order {
@@ -401,22 +370,8 @@ export const REJECT_RESTAURANT_Mutation = gql`
 `;
 
 export const ADD_ADDRESS_Mutation = gql`
-  mutation AddAddress(
-    $label: String
-    $addressLine1: String!
-    $city: String!
-    $state: String!
-    $pincode: String!
-    $isDefault: Boolean
-  ) {
-    AddAddress(
-      label: $label
-      addressLine1: $addressLine1
-      city: $city
-      state: $state
-      pincode: $pincode
-      isDefault: $isDefault
-    ) {
+  mutation AddAddress($input: AddAddressInput!) {
+    AddAddress(input: $input) {
       success
       msg
       address {
@@ -432,10 +387,34 @@ export const ADD_ADDRESS_Mutation = gql`
     }
   }
 `;
+export const UPDATE_ADDRESS_Mutation = gql`
+  mutation UpdateAddress($input: UpdateAddressInput!) {
+    UpdateAddress(input: $input) {
+      success
+      msg
+      address {
+        id
+        addressLine1
+        city
+        state
+        pincode
+      }
+    }
+  }
+`;
+
+export const DELETE_ADDRESS_Mutation = gql`
+  mutation DeleteAddress($addressId: ID!) {
+    DeleteAddress(addressId: $addressId) {
+      success
+      msg
+    }
+  }
+`;
 
 export const SUBMIT_REVIEW = gql`
-  mutation SubmitReview($restaurantId: ID!, $rating: Int!, $comment: String) {
-    SubmitReview(restaurantId: $restaurantId, rating: $rating, comment: $comment) {
+  mutation Mutation($input: SubmitReviewInput!) {
+    SubmitReview(input: $input) {
       success
       msg
       review {
@@ -453,8 +432,8 @@ export const SUBMIT_REVIEW = gql`
   }
 `;
 export const UPDATE_REVIEW = gql`
-  mutation UpdateReview($reviewId: ID!, $rating: Int, $comment: String) {
-    UpdateReview(reviewId: $reviewId, rating: $rating, comment: $comment) {
+  mutation Mutation($input: UpdateReviewInput!) {
+    UpdateReview(input: $input) {
       success
       msg
       review {
@@ -481,39 +460,4 @@ export const DELETE_REVIEW = gql`
   }
 `;
 
-export const UPDATE_ADDRESS_Mutation = gql`
-  mutation UpdateAddress(
-    $addressId: ID!
-    $addressLine1: String
-    $city: String
-    $state: String
-    $pincode: String
-  ) {
-    UpdateAddress(
-      addressId: $addressId
-      addressLine1: $addressLine1
-      city: $city
-      state: $state
-      pincode: $pincode
-    ) {
-      success
-      msg
-      address {
-        id
-        addressLine1
-        city
-        state
-        pincode
-      }
-    }
-  }
-`;
 
-export const DELETE_ADDRESS_Mutation = gql`
-  mutation DeleteAddress($addressId: ID!) {
-    DeleteAddress(addressId: $addressId) {
-      success
-      msg
-    }
-  }
-`;

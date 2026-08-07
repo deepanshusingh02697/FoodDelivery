@@ -11,11 +11,11 @@ import { Order } from "../entity/order.entity.js";
 export class AddressResolver {
   @Mutation(() => AddressResponse)
   async AddAddress(
-    @Arg("input", () => AddAddressInput) input: AddAddressInput,
+    @Arg("input", () => AddAddressInput)input:AddAddressInput,
     @Ctx() ctx: Context,
-  ) {
+  ) {    
     isAuth(ctx);
-
+    
     const address = await addressService.addAddress(input, ctx);
 
     return {

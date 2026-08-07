@@ -174,6 +174,7 @@ export class OrderResolver {
     @Arg("input", () => UpdateOrderStatusInput) input: UpdateOrderStatusInput,
     @Ctx() ctx: Context,
   ) {
+    
     const order = await orderRepository.findOne({
       where: {
         id: Number(input.orderId),
@@ -193,7 +194,7 @@ export class OrderResolver {
 
         if (
           !["PLACED", "PREPARING"].includes(order.status) ||
-          !["PREPARING", "CANCELED"].includes(status)
+          !["PREPARING", "CANCELED"].includes(input.status)
         ) {
           throw new Error("Invalid status update");
         }
@@ -204,7 +205,7 @@ export class OrderResolver {
           throw new Error("Not your order");
         }
 
-        if (order.status !== "PLACED" || status !== "CANCELED") {
+        if (order.status !== "PLACED" || input.status !== "CANCELED") {
           throw new Error("You can only cancel a placed order");
         }
         break;
@@ -229,7 +230,8 @@ export class OrderResolver {
     order.status = input.status;
 
     const updated = await orderRepository.save(order);
-
+    console.log("========== ",updated);
+    
     return {
       success: true,
       msg: "Order status updated",

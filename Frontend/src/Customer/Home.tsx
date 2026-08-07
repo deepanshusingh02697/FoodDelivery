@@ -48,6 +48,7 @@ export default function Home() {
       rating: selectedRating,
     },
   };
+  
 
   const { data, loading, error } = useQuery<FilterRestaurants_Query_Interface>(
     FILTER_RESTAURANTS_Query,
@@ -56,6 +57,15 @@ export default function Home() {
 
   const restaurants = data?.FilterRestaurants ?? [];
 
+  const handleQuickFilter = (filter: string) => {
+  setActiveFilter(filter);
+
+  if (filter === "All") {
+    setSelectedCuisine("All Cuisines");
+    setSelectedRating(undefined);
+    setSearchText("");
+  }
+};
   if (loading) {
     return <CustomerHomeLoad />;
   }
@@ -121,7 +131,7 @@ export default function Home() {
             {quickFilters.map((f) => (
               <button
                 key={f}
-                onClick={() => setActiveFilter(f)}
+                onClick={() => handleQuickFilter(f)}
                 className={`rounded-full px-4 py-2 text-sm border ${
                   activeFilter === f
                     ? "border-red-500 text-red-400"
