@@ -68,7 +68,7 @@ export default function Orders() {
     <div className="min-h-screen bg-[#0e0e0e] text-white px-6 py-10 mx-auto">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-4xl font-bold">My Orders</h1>
+          <h1 className="text-2xl font-bold">My Orders</h1>
         </div>
 
         <select

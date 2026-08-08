@@ -417,7 +417,7 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-[#0e0e0e] text-white px-6 py-10 mx-auto w-full">
-      <h1 className="text-4xl font-bold">Cart & Checkout</h1>
+      <h1 className="text-2xl font-bold">Cart & Checkout</h1>
       <p className="text-gray-400 mt-1">
         {restaurantName ?? "Restaurant"} · {cartItems.length} item
         {cartItems.length > 1 ? "s" : ""}

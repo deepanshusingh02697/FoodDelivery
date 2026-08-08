@@ -81,12 +81,13 @@ export class AuthService {
     });
 
     if (!admin) throw new Error("Invalid credentials");
-    if (admin.role !== Role.ADMIN)
+    if (admin.role !== Role.ADMIN) {
       throw new Error("Invalid credentials to login as admin");
-
+    }
     const passwordMatch = await bcrypt.compare(data.password, admin.password);
-    if (!passwordMatch)
-      throw new Error("Invalid credentials to login as owner");
+    if (!passwordMatch) {
+      throw new Error("Invalid credentials to login as admin");
+    }
     return admin;
   }
 
@@ -97,12 +98,12 @@ export class AuthService {
       },
     });
     if (!partner) throw new Error("Invalid credentials");
-    if (partner.role !== Role.ADMIN)
-      throw new Error("Invalid credentials to login as owner");
+    if (partner.role !== Role.DELIVERY_PARTNER)
+      throw new Error("Invalid credentials to login as delivery partner");
 
     const passwordMatch = await bcrypt.compare(data.password, partner.password);
     if (!passwordMatch)
-      throw new Error("Invalid credentials to login as owner");
+      throw new Error("Invalid credentials to login as devliery partner");
     return partner;
   }
   async deliveryPartnerSignUp(data: {

@@ -75,7 +75,7 @@ export default function Login() {
       isValid = false;
     }
 
-    /* if (!loginInput.password.trim()) {
+    if (!loginInput.password.trim()) {
       errors.password = "Password is required";
       isValid = false;
     } else if (
@@ -86,7 +86,7 @@ export default function Login() {
       errors.password =
         "Password must contain uppercase, lowercase, number and special character.";
       isValid = false;
-    } */
+    }
 
     setError(errors);
 
@@ -136,7 +136,10 @@ export default function Login() {
           toast("Login failed", { position: "top-right", type: "warning" });
         }
       } else if (role === "ADMIN") {
+        console.log("admin response is. : ", role);
         const response = await AdminLogIn({ variables });
+        console.log("admin response is. : ", response);
+
         if (response.data?.AdminLogIn?.success) {
           const user = response.data.AdminLogIn.user;
           if (user) {

@@ -48,8 +48,8 @@ export const logInUser_Mutation = gql`
 `;
 
 export const ownerLogIn_Mutation = gql`
-  mutation OwnerLogIn($email: String!, $password: String!) {
-    OwnerLogIn(email: $email, password: $password) {
+  mutation OwnerLogIn($input: LoginInput!) {
+    OwnerLogIn(input: $input) {
       success
       msg
       user {
@@ -64,8 +64,8 @@ export const ownerLogIn_Mutation = gql`
 `;
 
 export const adminLogIn_Mutation = gql`
-  mutation AdminLogIn($email: String!, $password: String!) {
-    AdminLogIn(email: $email, password: $password) {
+  mutation AdminLogIn($input: LoginInput!) {
+    AdminLogIn(input: $input) {
       success
       msg
       user {
@@ -80,8 +80,8 @@ export const adminLogIn_Mutation = gql`
 `;
 
 export const deliveryLogIn_Mutation = gql`
-  mutation DeliveryPartnerLogIn($email: String!, $password: String!) {
-    DeliveryPartnerLogIn(email: $email, password: $password) {
+  mutation DeliveryPartnerLogIn($input: LoginInput!) {
+    DeliveryPartnerLogIn(input: $input) {
       success
       msg
       user {
