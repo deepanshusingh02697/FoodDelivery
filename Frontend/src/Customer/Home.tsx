@@ -10,6 +10,7 @@ import type {
 } from "../graphql/Client";
 import { FILTER_RESTAURANTS_Query } from "../graphql/Query";
 import CustomerHomeLoad from "../LoadSkeleton/CustomerHomeLoad";
+import useDebounce from "../Component/UseDebounce";
 
 const quickFilters = ["All", "Pure Veg"];
 
@@ -37,12 +38,12 @@ export default function Home() {
     undefined,
   );
   const [searchText, setSearchText] = useState("");
-
+  const debouncedSearchText = useDebounce(searchText, 500);
   const navigate = useNavigate();
 
   const variables: FilterRestaurants_Vars = {
     input: {
-      search: searchText.trim() || undefined,
+      search: debouncedSearchText.trim() || undefined,
       cuisine: selectedCuisine !== "All Cuisines" ? selectedCuisine : undefined,
       vegOnly: activeFilter === "Pure Veg" ? true : undefined,
       rating: selectedRating,
@@ -70,7 +71,7 @@ export default function Home() {
     return <CustomerHomeLoad />;
   }
   return (
-    <div>
+    <div className="min-h-screen bg-[#0f0d0c] text-white">
       <main className="px-4 py-5 md:px-8 md:py-10">
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
           <div>
@@ -122,7 +123,7 @@ export default function Home() {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="Search restaurants by name..."
-            className="w-full rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-3 outline-none text-sm text-white"
+            className="w-full rounded-xl bg-[#1f1b19] border border-[#302521] px-4 py-3 outline-none text-sm text-white"
           />
         </div>
 
@@ -203,9 +204,10 @@ export default function Home() {
             return (
               <div
                 key={restaurant.id}
-                className="rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 hover:border-red-500/50 cursor-pointer"
+                className="rounded-2xl overflow-hidden bg-[#1d1816] border border-[#302521] hover:border-red-500/50 cursor-pointer"
+
               >
-                <div className="relative h-40 bg-zinc-800">
+                <div className="relative h-40 bg-[#241e1b]">
                   <img
                     src="https://res.cloudinary.com/delubzbh2/image/upload/v1785167836/FoodDelivery/uyslwdxixq404wchibut.avif"
                     alt={restaurant.restaurantName}
